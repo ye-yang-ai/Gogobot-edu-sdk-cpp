@@ -53,6 +53,12 @@ Without Visual Studio/MSVC, pure protocol tests can be built with MinGW by disab
 .\build\Release\aidog_ble_imu_read.exe --hz 20 --seconds 20
 .\build\Release\aidog_ble_tof_read.exe --hz 20 --seconds 20
 .\build\Release\aidog_ble_set_volume.exe --volume 3
+.\build\Release\aidog_ble_audio.exe --tone jeez --duration 1 --yes
+.\build\Release\aidog_ble_expression.exe --expression happy --yes
+.\build\Release\aidog_ble_ears.exe --action stand --yes
+.\build\Release\aidog_ble_ears.exe --percentage 50 --yes
+.\build\Release\aidog_ble_special_detection.exe --disable --yes
+.\build\Release\aidog_ble_special_detection.exe --enable --yes
 .\build\Release\aidog_ble_ears_expressions_audio.exe --yes
 .\build\Release\aidog_ble_action.exe --action sit_down --yes
 .\build\Release\aidog_ble_action.exe --action shake_hand --count 2 --yes
@@ -77,3 +83,16 @@ hands near the robot, use an open floor, and run them only after basic BLE
 actions and movement have been verified.
 
 WebSocket examples require firmware with `DEV_PC_AUDIO_WS_ENABLE=1` and `DEV_PC_AUDIO_WS_URL` pointing to the PC.
+
+## Tools
+
+Windows BLE upper-computer control panel:
+
+```powershell
+.\build\Release\aidog_user_control_ble.exe
+```
+
+The first version provides scan/connect, movement, common actions, ears,
+expressions, audio, 0-4 volume levels, and IMU/TOF text monitoring. It calls the
+public C++ `AiDog` APIs directly and does not include high-risk robot-adjustment
+controls.

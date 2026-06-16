@@ -21,12 +21,16 @@ mode where the robot connects back to the PC.
 5. `02_actions/bluetooth/ble_action_list.cpp`
 6. `02_actions/bluetooth/ble_action.cpp`
 7. `03_movement/bluetooth/ble_move.cpp`
-8. `02_actions/bluetooth/ble_ears_expressions_audio.cpp`
-9. `05_audio/bluetooth/ble_set_volume.cpp`
-10. `06_robot_adjust/bluetooth/ble_safe_pose_adjust.cpp`
-11. `06_robot_adjust/bluetooth/ble_custom_action.cpp`
-12. `02_actions/websocket/ws_basic_actions.cpp`
-13. `04_sensors/websocket/ws_imu_read.cpp`
+8. `02_actions/bluetooth/ble_ears.cpp`
+9. `02_actions/bluetooth/ble_expression.cpp`
+10. `05_audio/bluetooth/ble_audio.cpp`
+11. `05_audio/bluetooth/ble_set_volume.cpp`
+12. `02_actions/bluetooth/ble_special_detection.cpp`
+13. `02_actions/bluetooth/ble_ears_expressions_audio.cpp`
+14. `06_robot_adjust/bluetooth/ble_safe_pose_adjust.cpp`
+15. `06_robot_adjust/bluetooth/ble_custom_action.cpp`
+16. `02_actions/websocket/ws_basic_actions.cpp`
+17. `04_sensors/websocket/ws_imu_read.cpp`
 
 ## Directory Structure
 
@@ -42,7 +46,10 @@ examples/
       ble_action.cpp
       ble_action_list.cpp
       ble_basic_actions.cpp
+      ble_ears.cpp
+      ble_expression.cpp
       ble_ears_expressions_audio.cpp
+      ble_special_detection.cpp
     websocket/
       ws_basic_actions.cpp
   03_movement/
@@ -57,6 +64,7 @@ examples/
       ws_imu_read.cpp
   05_audio/
     bluetooth/
+      ble_audio.cpp
       ble_set_volume.cpp
     websocket/
   06_robot_adjust/
@@ -75,12 +83,16 @@ examples/
 | `02_actions/bluetooth/ble_action_list.cpp` | `aidog_ble_action_list` | List known high-level actions | Low | `.\build\Release\aidog_ble_action_list.exe` |
 | `02_actions/bluetooth/ble_action.cpp` | `aidog_ble_action` | Run one high-level BLE action | Medium | `.\build\Release\aidog_ble_action.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes` |
 | `02_actions/bluetooth/ble_basic_actions.cpp` | `aidog_ble_basic_actions` | Compatibility wrapper for one BLE action | Medium | `.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes` |
+| `02_actions/bluetooth/ble_ears.cpp` | `aidog_ble_ears` | Control ears by action or percentage | Low/Medium | `.\build\Release\aidog_ble_ears.exe --address AA:BB:CC:DD:EE:FF --action stand --yes` |
+| `02_actions/bluetooth/ble_expression.cpp` | `aidog_ble_expression` | Set one face expression | Low | `.\build\Release\aidog_ble_expression.exe --address AA:BB:CC:DD:EE:FF --expression happy --yes` |
 | `02_actions/bluetooth/ble_ears_expressions_audio.cpp` | `aidog_ble_ears_expressions_audio` | Control ears, expression, and tone over BLE | Low/Medium | `.\build\Release\aidog_ble_ears_expressions_audio.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `02_actions/bluetooth/ble_special_detection.cpp` | `aidog_ble_special_detection` | Enable or disable special-state detection | Low | `.\build\Release\aidog_ble_special_detection.exe --address AA:BB:CC:DD:EE:FF --disable --yes` |
 | `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe` |
 | `03_movement/bluetooth/ble_move.cpp` | `aidog_ble_move` | Move in one selected direction over BLE | Medium | `.\build\Release\aidog_ble_move.exe --address AA:BB:CC:DD:EE:FF --direction forward --duration 1 --yes` |
 | `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10` |
 | `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10` |
 | `04_sensors/websocket/ws_imu_read.cpp` | `aidog_ws_imu_read` | Read WebSocket IMU JSON stream | Low | `.\build\Release\aidog_ws_imu_read.exe` |
+| `05_audio/bluetooth/ble_audio.cpp` | `aidog_ble_audio` | Play or stop one BLE tone | Low | `.\build\Release\aidog_ble_audio.exe --address AA:BB:CC:DD:EE:FF --tone jeez --duration 1 --yes` |
 | `05_audio/bluetooth/ble_set_volume.cpp` | `aidog_ble_set_volume` | Set BLE volume level 0-4 | Low | `.\build\Release\aidog_ble_set_volume.exe --address AA:BB:CC:DD:EE:FF --volume 3` |
 | `06_robot_adjust/bluetooth/ble_safe_pose_adjust.cpp` | `aidog_ble_safe_pose_adjust` | Run low-amplitude body and foot adjustment | High | `.\build\Release\aidog_ble_safe_pose_adjust.exe --address AA:BB:CC:DD:EE:FF --yes` |
 | `06_robot_adjust/bluetooth/ble_custom_action.cpp` | `aidog_ble_custom_action` | Run a sniff-like custom robot-adjustment action | High | `.\build\Release\aidog_ble_custom_action.exe --address AA:BB:CC:DD:EE:FF --yes` |
@@ -93,8 +105,12 @@ examples/
 - `--hz`: requested sensor stream rate.
 - `--seconds`: sensor read duration.
 - `--action`: high-level action name.
+- `--audio`, `--tone`: audio tone name or id.
 - `--direction`: movement direction.
 - `--duration`: movement or action duration in seconds.
+- `--expression`: expression name or id.
+- `--percentage`: ear position percentage, `0-100`.
+- `--state`, `--enable`, `--disable`: special-state detection control.
 - `--hold`: custom robot-adjustment hold duration in seconds.
 - `--volume`: volume level, `0` is mute and `4` is max.
 - `--no-verify`: set volume without playing a verification tone.
@@ -107,3 +123,16 @@ cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
+
+## Control Panel
+
+The Windows BLE upper-computer control panel lives in `../tools/` and is built
+as:
+
+```powershell
+.\build\Release\aidog_user_control_ble.exe
+```
+
+It provides scan/connect, movement, common actions, ears, expressions, audio,
+0-4 volume levels, and IMU/TOF text monitoring through the public C++ `AiDog`
+APIs.
