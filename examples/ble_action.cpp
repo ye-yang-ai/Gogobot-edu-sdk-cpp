@@ -62,7 +62,10 @@ int main(int argc, char** argv)
         actionOptions.angle = options.angle;
         actionOptions.timeoutS = options.timeoutS;
 
-        const bool ok = dog.perform_action(options.action, actionOptions);
+        const auto action = aidog::resolve_action(options.action);
+        const auto& spec = aidog::action_spec(action);
+        std::cout << "action=" << options.action << " description=" << spec.description << "\n";
+        const bool ok = dog.perform_action(action, actionOptions);
         std::cout << "action_done=" << std::boolalpha << ok << "\n";
         dog.shutdown();
         return ok ? 0 : 2;

@@ -109,6 +109,12 @@ if(AIDOG_BUILD_EXAMPLES)
         add_executable(aidog_ble_set_volume examples/ble_set_volume.cpp)
         target_link_libraries(aidog_ble_set_volume PRIVATE aidog::sdk)
 
+        add_executable(aidog_ble_action examples/ble_action.cpp)
+        target_link_libraries(aidog_ble_action PRIVATE aidog::sdk)
+
+        add_executable(aidog_ble_move examples/ble_move.cpp)
+        target_link_libraries(aidog_ble_move PRIVATE aidog::sdk)
+
         add_executable(aidog_ble_basic_actions examples/ble_basic_actions.cpp)
         target_link_libraries(aidog_ble_basic_actions PRIVATE aidog::sdk)
     endif()
