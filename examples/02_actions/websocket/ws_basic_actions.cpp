@@ -1,3 +1,16 @@
+/*
+Purpose:
+    Run one basic action through the Dev PC WebSocket host.
+Risk level:
+    Medium. The robot may move after it connects to the PC host.
+Run:
+    .\build\Release\aidog_ws_basic_actions.exe
+Expected result:
+    The host waits on ws://0.0.0.0:8766, then runs sit_down after the robot connects.
+Exit:
+    Wait for the action to finish, or press Ctrl+C.
+*/
+
 #include <iostream>
 
 #include <aidog.hpp>

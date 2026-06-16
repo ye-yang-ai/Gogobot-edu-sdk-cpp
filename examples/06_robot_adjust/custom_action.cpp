@@ -1,3 +1,17 @@
+/*
+Purpose:
+    Run a custom BLE sniff-like action built from robot-adjustment APIs.
+Risk level:
+    High. This example changes foot targets and plays expression/audio.
+Run:
+    .\build\Release\aidog_custom_action.exe --address AA:BB:CC:DD:EE:FF --hold 4 --yes
+    .\build\Release\aidog_custom_action.exe --prefix Gogobot --hold 4
+Expected result:
+    The robot performs the custom sniff motion, then returns to basic mode.
+Exit:
+    Keep hands near the robot. Without --yes, type RUN to confirm.
+*/
+
 #include <chrono>
 #include <iostream>
 #include <optional>
@@ -23,7 +37,7 @@ Options _parse_options(int argc, char** argv)
         std::string arg = argv[i];
         if (arg == "--address" && i + 1 < argc) {
             options.connect.address = argv[++i];
-        } else if (arg == "--prefix" && i + 1 < argc) {
+        } else if ((arg == "--prefix" || arg == "--name-prefix") && i + 1 < argc) {
             options.connect.namePrefix = argv[++i];
         } else if (arg == "--hold" && i + 1 < argc) {
             options.holdS = std::stod(argv[++i]);

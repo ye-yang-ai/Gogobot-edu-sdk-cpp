@@ -47,27 +47,17 @@ Without Visual Studio/MSVC, pure protocol tests can be built with MinGW by disab
 ## Examples
 
 ```powershell
-.\build\Release\aidog_ble_scan.exe
-.\build\Release\aidog_ble_connect_test.exe
-.\build\Release\aidog_ble_action_list.exe
+.\build\Release\aidog_ble_scan_and_connect.exe
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
 .\build\Release\aidog_ble_imu_read.exe --hz 20 --seconds 20
 .\build\Release\aidog_ble_tof_read.exe --hz 20 --seconds 20
-.\build\Release\aidog_ble_set_volume.exe --volume 3
-.\build\Release\aidog_ble_audio.exe --tone jeez --duration 1 --yes
-.\build\Release\aidog_ble_expression.exe --expression happy --yes
-.\build\Release\aidog_ble_ears.exe --action stand --yes
-.\build\Release\aidog_ble_ears.exe --percentage 50 --yes
-.\build\Release\aidog_ble_special_detection.exe --disable --yes
-.\build\Release\aidog_ble_special_detection.exe --enable --yes
-.\build\Release\aidog_ble_ears_expressions_audio.exe --yes
-.\build\Release\aidog_ble_action.exe --action sit_down --yes
-.\build\Release\aidog_ble_action.exe --action shake_hand --count 2 --yes
-.\build\Release\aidog_ble_action.exe --action dance --duration 3 --yes
-.\build\Release\aidog_ble_action.exe --action right_angle --angle 90 --yes
-.\build\Release\aidog_ble_move.exe --direction forward --duration 1 --yes
 .\build\Release\aidog_ble_basic_actions.exe --action sit_down --yes
-.\build\Release\aidog_ble_safe_pose_adjust.exe --yes
-.\build\Release\aidog_ble_custom_action.exe --yes
+.\build\Release\aidog_ble_choreography.exe --yes
+.\build\Release\aidog_ble_ears_expressions_audio.exe --yes
+.\build\Release\aidog_ble_directional_move.exe --direction forward --duration 1 --yes
+.\build\Release\aidog_ble_timed_move.exe --duration 1 --pause 1 --yes
+.\build\Release\aidog_safe_pose_adjust.exe --yes
+.\build\Release\aidog_custom_action.exe --yes
 .\build\Release\aidog_ws_basic_actions.exe
 .\build\Release\aidog_ws_imu_read.exe
 ```

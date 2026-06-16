@@ -1,3 +1,17 @@
+/*
+Purpose:
+    Run a BLE demo for volume, audio, expression, ears, and special detection.
+Risk level:
+    Low/Medium. Ears and expression change; special detection is toggled briefly.
+Run:
+    .\build\Release\aidog_ble_ears_expressions_audio.exe --address AA:BB:CC:DD:EE:FF --yes
+    .\build\Release\aidog_ble_ears_expressions_audio.exe --prefix Gogobot --yes
+Expected result:
+    The robot plays one tone, changes expression, moves ears, and restores special detection.
+Exit:
+    Wait for the demo to finish.
+*/
+
 #include <chrono>
 #include <iostream>
 #include <optional>
@@ -16,7 +30,7 @@ aidog::ConnectOptions _parse_options(int argc, char** argv, bool& runDemo)
         std::string arg = argv[i];
         if (arg == "--address" && i + 1 < argc) {
             options.address = argv[++i];
-        } else if (arg == "--prefix" && i + 1 < argc) {
+        } else if ((arg == "--prefix" || arg == "--name-prefix") && i + 1 < argc) {
             options.namePrefix = argv[++i];
         } else if (arg == "--yes") {
             runDemo = true;
@@ -37,7 +51,7 @@ int main(int argc, char** argv)
             return 2;
         }
 
-        aidog::AiDog dog(false);
+        aidog::AiDog dog;
         dog.connect(options);
 
         std::cout << "set volume\n";

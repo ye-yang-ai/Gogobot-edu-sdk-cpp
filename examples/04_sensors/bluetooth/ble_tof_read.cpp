@@ -1,3 +1,17 @@
+/*
+Purpose:
+    Read BLE TOF data for a fixed duration.
+Risk level:
+    Low. This example only requests and prints sensor data.
+Run:
+    .\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20
+    .\build\Release\aidog_ble_tof_read.exe --prefix Gogobot --hz 20 --seconds 20
+Expected result:
+    The terminal prints TOF JSON payloads.
+Exit:
+    Wait for --seconds to finish, or press Ctrl+C.
+*/
+
 #include <atomic>
 #include <chrono>
 #include <csignal>
@@ -24,7 +38,7 @@ aidog::ConnectOptions _parse_options(int argc, char** argv, int& hz, int& second
         std::string arg = argv[i];
         if (arg == "--address" && i + 1 < argc) {
             options.address = argv[++i];
-        } else if (arg == "--prefix" && i + 1 < argc) {
+        } else if ((arg == "--prefix" || arg == "--name-prefix") && i + 1 < argc) {
             options.namePrefix = argv[++i];
         } else if (arg == "--hz" && i + 1 < argc) {
             hz = std::stoi(argv[++i]);

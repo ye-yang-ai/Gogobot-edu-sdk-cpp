@@ -1,3 +1,17 @@
+/*
+Purpose:
+    Run a small, supervised BLE robot-adjustment sequence.
+Risk level:
+    High. This example changes body and foot targets.
+Run:
+    .\build\Release\aidog_safe_pose_adjust.exe --address AA:BB:CC:DD:EE:FF --yes
+    .\build\Release\aidog_safe_pose_adjust.exe --prefix Gogobot
+Expected result:
+    The robot enters basic mode, lowers/restores body height, shifts feet, and restores detection.
+Exit:
+    Keep hands near the robot. Without --yes, type RUN to confirm.
+*/
+
 #include <chrono>
 #include <iostream>
 #include <optional>
@@ -22,7 +36,7 @@ Options _parse_options(int argc, char** argv)
         std::string arg = argv[i];
         if (arg == "--address" && i + 1 < argc) {
             options.connect.address = argv[++i];
-        } else if (arg == "--prefix" && i + 1 < argc) {
+        } else if ((arg == "--prefix" || arg == "--name-prefix") && i + 1 < argc) {
             options.connect.namePrefix = argv[++i];
         } else if (arg == "--yes") {
             options.yes = true;

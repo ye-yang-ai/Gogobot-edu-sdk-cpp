@@ -1,8 +1,11 @@
 # Examples
 
-The examples are organized by feature area and transport. Bluetooth examples
-control the robot directly over BLE. WebSocket examples are for the Dev PC host
-mode where the robot connects back to the PC.
+The BLE examples are aligned with the Python SDK example layout. WebSocket
+examples are kept as the current C++ host examples and are not part of this BLE
+alignment pass.
+
+Every `.cpp` example starts with a short usage block that shows purpose, risk,
+commands, expected result, and exit behavior.
 
 ## Risk Levels
 
@@ -12,25 +15,19 @@ mode where the robot connects back to the PC.
 | Medium | Runs actions or movement through high-level robot APIs |
 | High | Changes body, foot, or joint targets; requires careful supervision |
 
-## Recommended Order
+## Recommended BLE Order
 
-1. `01_connection/bluetooth/ble_scan.cpp`
-2. `01_connection/bluetooth/ble_connect_test.cpp`
+1. `01_connection/bluetooth/ble_scan_and_connect.cpp`
+2. `01_connection/bluetooth/ble_connect_by_address.cpp`
 3. `04_sensors/bluetooth/ble_imu_read.cpp`
 4. `04_sensors/bluetooth/ble_tof_read.cpp`
-5. `02_actions/bluetooth/ble_action_list.cpp`
-6. `02_actions/bluetooth/ble_action.cpp`
-7. `03_movement/bluetooth/ble_move.cpp`
-8. `02_actions/bluetooth/ble_ears.cpp`
-9. `02_actions/bluetooth/ble_expression.cpp`
-10. `05_audio/bluetooth/ble_audio.cpp`
-11. `05_audio/bluetooth/ble_set_volume.cpp`
-12. `02_actions/bluetooth/ble_special_detection.cpp`
-13. `02_actions/bluetooth/ble_ears_expressions_audio.cpp`
-14. `06_robot_adjust/bluetooth/ble_safe_pose_adjust.cpp`
-15. `06_robot_adjust/bluetooth/ble_custom_action.cpp`
-16. `02_actions/websocket/ws_basic_actions.cpp`
-17. `04_sensors/websocket/ws_imu_read.cpp`
+5. `02_actions/bluetooth/ble_basic_actions.cpp`
+6. `02_actions/bluetooth/ble_ears_expressions_audio.cpp`
+7. `03_movement/bluetooth/ble_directional_move.cpp`
+8. `03_movement/bluetooth/ble_timed_move.cpp`
+9. `02_actions/bluetooth/ble_choreography.cpp`
+10. `06_robot_adjust/safe_pose_adjust.cpp`
+11. `06_robot_adjust/custom_action.cpp`
 
 ## Directory Structure
 
@@ -38,82 +35,60 @@ mode where the robot connects back to the PC.
 examples/
   01_connection/
     bluetooth/
-      ble_scan.cpp
-      ble_connect_test.cpp
-    websocket/
+      ble_scan_and_connect.cpp
+      ble_connect_by_address.cpp
   02_actions/
     bluetooth/
-      ble_action.cpp
-      ble_action_list.cpp
       ble_basic_actions.cpp
-      ble_ears.cpp
-      ble_expression.cpp
+      ble_choreography.cpp
       ble_ears_expressions_audio.cpp
-      ble_special_detection.cpp
     websocket/
       ws_basic_actions.cpp
   03_movement/
     bluetooth/
-      ble_move.cpp
-    websocket/
+      ble_directional_move.cpp
+      ble_timed_move.cpp
   04_sensors/
     bluetooth/
       ble_imu_read.cpp
       ble_tof_read.cpp
     websocket/
       ws_imu_read.cpp
-  05_audio/
-    bluetooth/
-      ble_audio.cpp
-      ble_set_volume.cpp
-    websocket/
   06_robot_adjust/
-    bluetooth/
-      ble_safe_pose_adjust.cpp
-      ble_custom_action.cpp
-    websocket/
+    safe_pose_adjust.cpp
+    custom_action.cpp
 ```
 
 ## Index
 
 | Path | Target | Purpose | Risk | Typical command |
 |---|---|---|---|---|
-| `01_connection/bluetooth/ble_scan.cpp` | `aidog_ble_scan` | Scan Gogobot BLE devices | Low | `.\build\Release\aidog_ble_scan.exe` |
-| `01_connection/bluetooth/ble_connect_test.cpp` | `aidog_ble_connect_test` | Connect to a known BLE device | Low | `.\build\Release\aidog_ble_connect_test.exe --address AA:BB:CC:DD:EE:FF` |
-| `02_actions/bluetooth/ble_action_list.cpp` | `aidog_ble_action_list` | List known high-level actions | Low | `.\build\Release\aidog_ble_action_list.exe` |
-| `02_actions/bluetooth/ble_action.cpp` | `aidog_ble_action` | Run one high-level BLE action | Medium | `.\build\Release\aidog_ble_action.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes` |
-| `02_actions/bluetooth/ble_basic_actions.cpp` | `aidog_ble_basic_actions` | Compatibility wrapper for one BLE action | Medium | `.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes` |
-| `02_actions/bluetooth/ble_ears.cpp` | `aidog_ble_ears` | Control ears by action or percentage | Low/Medium | `.\build\Release\aidog_ble_ears.exe --address AA:BB:CC:DD:EE:FF --action stand --yes` |
-| `02_actions/bluetooth/ble_expression.cpp` | `aidog_ble_expression` | Set one face expression | Low | `.\build\Release\aidog_ble_expression.exe --address AA:BB:CC:DD:EE:FF --expression happy --yes` |
-| `02_actions/bluetooth/ble_ears_expressions_audio.cpp` | `aidog_ble_ears_expressions_audio` | Control ears, expression, and tone over BLE | Low/Medium | `.\build\Release\aidog_ble_ears_expressions_audio.exe --address AA:BB:CC:DD:EE:FF --yes` |
-| `02_actions/bluetooth/ble_special_detection.cpp` | `aidog_ble_special_detection` | Enable or disable special-state detection | Low | `.\build\Release\aidog_ble_special_detection.exe --address AA:BB:CC:DD:EE:FF --disable --yes` |
+| `01_connection/bluetooth/ble_scan_and_connect.cpp` | `aidog_ble_scan_and_connect` | Scan and connect to a Gogobot BLE device | Low | `.\build\Release\aidog_ble_scan_and_connect.exe` |
+| `01_connection/bluetooth/ble_connect_by_address.cpp` | `aidog_ble_connect_by_address` | Connect to a known BLE device | Low | `.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF` |
+| `02_actions/bluetooth/ble_basic_actions.cpp` | `aidog_ble_basic_actions` | Run one high-level BLE action | Medium | `.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes` |
+| `02_actions/bluetooth/ble_choreography.cpp` | `aidog_ble_choreography` | Run a combined BLE choreography | Medium | `.\build\Release\aidog_ble_choreography.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `02_actions/bluetooth/ble_ears_expressions_audio.cpp` | `aidog_ble_ears_expressions_audio` | Control ears, expression, audio, volume, and special detection | Low/Medium | `.\build\Release\aidog_ble_ears_expressions_audio.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `03_movement/bluetooth/ble_directional_move.cpp` | `aidog_ble_directional_move` | Move in one selected direction over BLE | Medium | `.\build\Release\aidog_ble_directional_move.exe --address AA:BB:CC:DD:EE:FF --direction forward --duration 1 --yes` |
+| `03_movement/bluetooth/ble_timed_move.cpp` | `aidog_ble_timed_move` | Run a timed BLE movement sequence | Medium | `.\build\Release\aidog_ble_timed_move.exe --address AA:BB:CC:DD:EE:FF --duration 1 --pause 1 --yes` |
+| `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20` |
+| `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20` |
 | `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe` |
-| `03_movement/bluetooth/ble_move.cpp` | `aidog_ble_move` | Move in one selected direction over BLE | Medium | `.\build\Release\aidog_ble_move.exe --address AA:BB:CC:DD:EE:FF --direction forward --duration 1 --yes` |
-| `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10` |
-| `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10` |
 | `04_sensors/websocket/ws_imu_read.cpp` | `aidog_ws_imu_read` | Read WebSocket IMU JSON stream | Low | `.\build\Release\aidog_ws_imu_read.exe` |
-| `05_audio/bluetooth/ble_audio.cpp` | `aidog_ble_audio` | Play or stop one BLE tone | Low | `.\build\Release\aidog_ble_audio.exe --address AA:BB:CC:DD:EE:FF --tone jeez --duration 1 --yes` |
-| `05_audio/bluetooth/ble_set_volume.cpp` | `aidog_ble_set_volume` | Set BLE volume level 0-4 | Low | `.\build\Release\aidog_ble_set_volume.exe --address AA:BB:CC:DD:EE:FF --volume 3` |
-| `06_robot_adjust/bluetooth/ble_safe_pose_adjust.cpp` | `aidog_ble_safe_pose_adjust` | Run low-amplitude body and foot adjustment | High | `.\build\Release\aidog_ble_safe_pose_adjust.exe --address AA:BB:CC:DD:EE:FF --yes` |
-| `06_robot_adjust/bluetooth/ble_custom_action.cpp` | `aidog_ble_custom_action` | Run a sniff-like custom robot-adjustment action | High | `.\build\Release\aidog_ble_custom_action.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `06_robot_adjust/safe_pose_adjust.cpp` | `aidog_safe_pose_adjust` | Run low-amplitude body and foot adjustment | High | `.\build\Release\aidog_safe_pose_adjust.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `06_robot_adjust/custom_action.cpp` | `aidog_custom_action` | Run a sniff-like custom robot-adjustment action | High | `.\build\Release\aidog_custom_action.exe --address AA:BB:CC:DD:EE:FF --yes` |
 
 ## Common Arguments
 
-- `--prefix`: BLE advertisement prefix, default `Gogobot`.
+- `--prefix`, `--name-prefix`: BLE advertisement prefix, default `Gogobot`.
 - `--address`: BLE MAC address or Windows BLE address.
-- `--timeout`: scan, connect, or operation timeout.
+- `--timeout`: operation timeout for supported action examples.
 - `--hz`: requested sensor stream rate.
 - `--seconds`: sensor read duration.
 - `--action`: high-level action name.
-- `--audio`, `--tone`: audio tone name or id.
 - `--direction`: movement direction.
 - `--duration`: movement or action duration in seconds.
-- `--expression`: expression name or id.
-- `--percentage`: ear position percentage, `0-100`.
-- `--state`, `--enable`, `--disable`: special-state detection control.
+- `--pause`: pause between timed movement commands.
 - `--hold`: custom robot-adjustment hold duration in seconds.
-- `--volume`: volume level, `0` is mute and `4` is max.
-- `--no-verify`: set volume without playing a verification tone.
 - `--yes`: skip confirmation for examples that can move the robot.
 
 ## Build

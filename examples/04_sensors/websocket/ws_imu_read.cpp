@@ -1,3 +1,16 @@
+/*
+Purpose:
+    Read IMU data through the Dev PC WebSocket host.
+Risk level:
+    Low. This example only requests and prints sensor data.
+Run:
+    .\build\Release\aidog_ws_imu_read.exe
+Expected result:
+    The host waits on ws://0.0.0.0:8766 and prints IMU values after the robot connects.
+Exit:
+    Press Ctrl+C.
+*/
+
 #include <chrono>
 #include <iostream>
 #include <thread>
