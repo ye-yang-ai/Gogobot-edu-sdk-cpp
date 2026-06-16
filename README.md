@@ -54,12 +54,20 @@ Without Visual Studio/MSVC, pure protocol tests can be built with MinGW by disab
 .\build\Release\aidog_ble_tof_read.exe --hz 20 --seconds 20
 .\build\Release\aidog_ble_set_volume.exe --volume 3
 .\build\Release\aidog_ble_ears_expressions_audio.exe --yes
-.\build\Release\aidog_ble_basic_actions.exe
+.\build\Release\aidog_ble_action.exe --action sit_down --yes
+.\build\Release\aidog_ble_action.exe --action shake_hand --count 2 --yes
+.\build\Release\aidog_ble_action.exe --action dance --duration 3 --yes
+.\build\Release\aidog_ble_action.exe --action right_angle --angle 90 --yes
+.\build\Release\aidog_ble_move.exe --direction forward --duration 1 --yes
+.\build\Release\aidog_ble_basic_actions.exe --action sit_down --yes
 .\build\Release\aidog_ws_basic_actions.exe
 .\build\Release\aidog_ws_imu_read.exe
 ```
 
 BLE examples accept `--address <BluetoothAddress>` to skip scanning and
 `--prefix <name>` to change the default `Gogobot` scan prefix.
+
+Commands that move the robot require `--yes`. Keep the robot on a flat open
+floor, and use short movement durations first.
 
 WebSocket examples require firmware with `DEV_PC_AUDIO_WS_ENABLE=1` and `DEV_PC_AUDIO_WS_URL` pointing to the PC.
