@@ -87,44 +87,29 @@ else()
 endif()
 
 if(AIDOG_BUILD_EXAMPLES)
+    function(aidog_add_example target source)
+        add_executable(${target} ${source})
+        target_link_libraries(${target} PRIVATE aidog::sdk)
+    endfunction()
+
     if(AIDOG_ENABLE_WINDOWS_BLE)
-        add_executable(aidog_ble_scan examples/ble_scan.cpp)
-        target_link_libraries(aidog_ble_scan PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_connect_test examples/ble_connect_test.cpp)
-        target_link_libraries(aidog_ble_connect_test PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_action_list examples/ble_action_list.cpp)
-        target_link_libraries(aidog_ble_action_list PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_imu_read examples/ble_imu_read.cpp)
-        target_link_libraries(aidog_ble_imu_read PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_tof_read examples/ble_tof_read.cpp)
-        target_link_libraries(aidog_ble_tof_read PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_ears_expressions_audio examples/ble_ears_expressions_audio.cpp)
-        target_link_libraries(aidog_ble_ears_expressions_audio PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_set_volume examples/ble_set_volume.cpp)
-        target_link_libraries(aidog_ble_set_volume PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_action examples/ble_action.cpp)
-        target_link_libraries(aidog_ble_action PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_move examples/ble_move.cpp)
-        target_link_libraries(aidog_ble_move PRIVATE aidog::sdk)
-
-        add_executable(aidog_ble_basic_actions examples/ble_basic_actions.cpp)
-        target_link_libraries(aidog_ble_basic_actions PRIVATE aidog::sdk)
+        aidog_add_example(aidog_ble_scan examples/01_connection/bluetooth/ble_scan.cpp)
+        aidog_add_example(aidog_ble_connect_test examples/01_connection/bluetooth/ble_connect_test.cpp)
+        aidog_add_example(aidog_ble_action_list examples/02_actions/bluetooth/ble_action_list.cpp)
+        aidog_add_example(aidog_ble_action examples/02_actions/bluetooth/ble_action.cpp)
+        aidog_add_example(aidog_ble_basic_actions examples/02_actions/bluetooth/ble_basic_actions.cpp)
+        aidog_add_example(aidog_ble_ears_expressions_audio examples/02_actions/bluetooth/ble_ears_expressions_audio.cpp)
+        aidog_add_example(aidog_ble_move examples/03_movement/bluetooth/ble_move.cpp)
+        aidog_add_example(aidog_ble_imu_read examples/04_sensors/bluetooth/ble_imu_read.cpp)
+        aidog_add_example(aidog_ble_tof_read examples/04_sensors/bluetooth/ble_tof_read.cpp)
+        aidog_add_example(aidog_ble_set_volume examples/05_audio/bluetooth/ble_set_volume.cpp)
+        aidog_add_example(aidog_ble_safe_pose_adjust examples/06_robot_adjust/bluetooth/ble_safe_pose_adjust.cpp)
+        aidog_add_example(aidog_ble_custom_action examples/06_robot_adjust/bluetooth/ble_custom_action.cpp)
     endif()
 
     if(AIDOG_ENABLE_WEBSOCKET)
-        add_executable(aidog_ws_basic_actions examples/ws_basic_actions.cpp)
-        target_link_libraries(aidog_ws_basic_actions PRIVATE aidog::sdk)
-
-        add_executable(aidog_ws_imu_read examples/ws_imu_read.cpp)
-        target_link_libraries(aidog_ws_imu_read PRIVATE aidog::sdk)
+        aidog_add_example(aidog_ws_basic_actions examples/02_actions/websocket/ws_basic_actions.cpp)
+        aidog_add_example(aidog_ws_imu_read examples/04_sensors/websocket/ws_imu_read.cpp)
     endif()
 endif()
 
