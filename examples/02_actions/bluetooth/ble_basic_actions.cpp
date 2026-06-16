@@ -1,3 +1,17 @@
+/*
+Purpose:
+    Run one high-level BLE action by name.
+Risk level:
+    Medium. Some actions move the robot.
+Run:
+    .\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes
+    .\build\Release\aidog_ble_basic_actions.exe --prefix Gogobot --action shake_hand --count 2 --yes
+Expected result:
+    The selected action runs and prints action_done=true when completed.
+Exit:
+    Wait for the action to finish. Keep the robot on a flat open floor.
+*/
+
 #include <iostream>
 #include <optional>
 #include <string>
@@ -23,7 +37,7 @@ Options _parse_options(int argc, char** argv)
         std::string arg = argv[i];
         if (arg == "--address" && i + 1 < argc) {
             options.connect.address = argv[++i];
-        } else if (arg == "--prefix" && i + 1 < argc) {
+        } else if ((arg == "--prefix" || arg == "--name-prefix") && i + 1 < argc) {
             options.connect.namePrefix = argv[++i];
         } else if ((arg == "--action" || arg == "--name") && i + 1 < argc) {
             options.action = argv[++i];

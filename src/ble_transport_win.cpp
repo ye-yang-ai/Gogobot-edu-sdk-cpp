@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <cctype>
+#include <iomanip>
 #include <mutex>
 #include <sstream>
 #include <thread>
@@ -100,6 +101,19 @@ std::uint64_t _parse_bluetooth_address(const std::string& address)
     return value;
 }
 
+std::string _format_bluetooth_address(std::uint64_t address)
+{
+    std::ostringstream oss;
+    oss << std::uppercase << std::hex << std::setfill('0');
+    for (int shift = 40; shift >= 0; shift -= 8) {
+        if (shift != 40) {
+            oss << ':';
+        }
+        oss << std::setw(2) << static_cast<int>((address >> shift) & 0xFF);
+    }
+    return oss.str();
+}
+
 } // namespace
 
 struct BleTransportWin::Impl {
@@ -139,7 +153,7 @@ struct BleTransportWin::Impl {
             if (name.empty() || name.rfind(namePrefix, 0) != 0) {
                 return;
             }
-            auto address = std::to_string(args.BluetoothAddress());
+            auto address = _format_bluetooth_address(args.BluetoothAddress());
             std::lock_guard<std::mutex> lock(scanMutex);
             auto found = std::find_if(devices.begin(), devices.end(), [&](const DeviceInfo& item) {
                 return item.address == address;
