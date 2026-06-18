@@ -17,6 +17,7 @@
 #include <condition_variable>
 #include <deque>
 #include <functional>
+#include <cmath>
 #include <iomanip>
 #include <memory>
 #include <mutex>
@@ -39,7 +40,12 @@ constexpr wchar_t kWindowClass[] = L"AiDogBleControlWindow";
 constexpr UINT WM_APP_TASK_DONE = WM_APP + 1;
 constexpr UINT WM_APP_SENSOR = WM_APP + 2;
 constexpr UINT_PTR kRefreshTimer = 1;
+constexpr UINT_PTR kPlotTimer = 2;
 constexpr int kMaxLogLines = 300;
+constexpr int kJoystickSize = 260;
+constexpr int kJoystickDeadzone = 18;
+constexpr int kPlotHistoryMs = 12000;
+constexpr DWORD kEarSendIntervalMs = 60;
 
 enum ControlId {
     IdPrefix = 100,
@@ -53,6 +59,16 @@ enum ControlId {
     IdTofCheck,
     IdHzEdit,
     IdSensorText,
+    IdJoystick,
+    IdApplyHz,
+    IdClearPlots,
+    IdPlotBase = 9000,
+};
+
+template <typename Enum>
+struct EnumButtonDef {
+    const wchar_t* text;
+    Enum value;
 };
 
 std::wstring to_wide(const std::string& text)
@@ -93,6 +109,214 @@ std::wstring number_text(double value)
     return oss.str();
 }
 
+const wchar_t* action_text(aidog::Action action)
+{
+    switch (action) {
+    case aidog::Action::Idle: return L"IDLE";
+    case aidog::Action::SlowUp: return L"SLOW_UP";
+    case aidog::Action::SlowDown: return L"SLOW_DOWN";
+    case aidog::Action::SlowDownForCharge: return L"SLOW_DOWN_FOR_CHARGE";
+    case aidog::Action::SlowDownForProgram: return L"SLOW_DOWN_FOR_PROGRAM";
+    case aidog::Action::UpAndDown: return L"UP_AND_DOWN";
+    case aidog::Action::SitDown: return L"SIT_DOWN";
+    case aidog::Action::SitDownForProgram: return L"SIT_DOWN_FOR_PROGRAM";
+    case aidog::Action::StandUp: return L"STAND_UP";
+    case aidog::Action::ShakeHand: return L"SHAKE_HAND";
+    case aidog::Action::ShakeHandWithSitDown: return L"SHAKE_HAND_WITH_SIT_DOWN";
+    case aidog::Action::Nod: return L"NOD";
+    case aidog::Action::ShakeHead: return L"SHAKE_HEAD";
+    case aidog::Action::Stretch: return L"STRETCH";
+    case aidog::Action::Pee: return L"PEE";
+    case aidog::Action::Twist: return L"TWIST";
+    case aidog::Action::PushUp: return L"PUSH_UP";
+    case aidog::Action::NewYear: return L"NEW_YEAR";
+    case aidog::Action::WagTail: return L"WAG_TAIL";
+    case aidog::Action::Stomp: return L"STOMP";
+    case aidog::Action::Sniff: return L"SNIFF";
+    case aidog::Action::Celebrate: return L"CELEBRATE";
+    case aidog::Action::Jump: return L"JUMP";
+    case aidog::Action::Dance: return L"DANCE";
+    case aidog::Action::KickBall: return L"KICK_BALL";
+    case aidog::Action::TouchGroundRight: return L"TOUCH_GROUND_RIGHT";
+    case aidog::Action::TouchGroundLeft: return L"TOUCH_GROUND_LEFT";
+    case aidog::Action::PlayDead: return L"PLAY_DEAD";
+    case aidog::Action::StepInteraction: return L"STEP_INTERACTION";
+    case aidog::Action::ForwardInteraction: return L"FORWARD_INTERACTION";
+    case aidog::Action::BackInteraction: return L"BACK_INTERACTION";
+    case aidog::Action::LeftInteraction: return L"LEFT_INTERACTION";
+    case aidog::Action::RightInteraction: return L"RIGHT_INTERACTION";
+    case aidog::Action::LowForwardAndBackwardInteraction: return L"LOW_FORWARD_AND_BACKWARD_INTERACTION";
+    case aidog::Action::LowForwardInteraction: return L"LOW_FORWARD_INTERACTION";
+    case aidog::Action::LowBackwardInteraction: return L"LOW_BACKWARD_INTERACTION";
+    case aidog::Action::LowLeftInteraction: return L"LOW_LEFT_INTERACTION";
+    case aidog::Action::LowRightInteraction: return L"LOW_RIGHT_INTERACTION";
+    case aidog::Action::StopInteraction: return L"STOP_INTERACTION";
+    case aidog::Action::UpAndDownForTest: return L"UP_AND_DOWN_FOR_TEST";
+    case aidog::Action::RolloverRecoveryRight: return L"ROLLOVER_RECOVERY_RIGHT";
+    case aidog::Action::RolloverRecoveryLeft: return L"ROLLOVER_RECOVERY_LEFT";
+    case aidog::Action::Flailing: return L"FLAILING";
+    case aidog::Action::StopFlailing: return L"STOP_FLAILING";
+    case aidog::Action::LightOnInteraction: return L"LIGHT_ON_INTERACTION";
+    case aidog::Action::LightOffInteraction: return L"LIGHT_OFF_INTERACTION";
+    case aidog::Action::SwingLeftAndRight: return L"SWING_LEFT_AND_RIGHT";
+    case aidog::Action::SwingLeft: return L"SWING_LEFT";
+    case aidog::Action::SwingRight: return L"SWING_RIGHT";
+    case aidog::Action::ExcitedInspace: return L"EXCITED_INSPACE";
+    case aidog::Action::LazyPatPat: return L"LAZY_PAT_PAT";
+    case aidog::Action::CheekyPaw: return L"CHEEKY_PAW";
+    case aidog::Action::Whining: return L"WHINING";
+    case aidog::Action::SniffForwardInteraction: return L"SNIFF_FORWARD_INTERACTION";
+    case aidog::Action::SpaceBackwardInteraction: return L"SPACE_BACKWARD_INTERACTION";
+    case aidog::Action::SniffLeftInteraction: return L"SNIFF_LEFT_INTERACTION";
+    case aidog::Action::SniffRightInteraction: return L"SNIFF_RIGHT_INTERACTION";
+    case aidog::Action::SniffStepInteraction: return L"SNIFF_STEP_INTERACTION";
+    case aidog::Action::LeftAngleInteraction: return L"LEFT_ANGLE_INTERACTION";
+    case aidog::Action::RightAngleInteraction: return L"RIGHT_ANGLE_INTERACTION";
+    default: return L"UNKNOWN_ACTION";
+    }
+}
+
+const std::vector<EnumButtonDef<aidog::EarAction>>& ear_defs()
+{
+    static const std::vector<EnumButtonDef<aidog::EarAction>> defs{
+        {L"IDLE", aidog::EarAction::Idle},
+        {L"EAR_SHAKE_ASYN_1_3", aidog::EarAction::EarShakeAsyn13},
+        {L"EAR_SHAKE_ASYN_1_2", aidog::EarAction::EarShakeAsyn12},
+        {L"EAR_SHAKE_SYN", aidog::EarAction::EarShakeSyn},
+        {L"EAR_SHAKE_SYN_FOR_BLE", aidog::EarAction::EarShakeSynForBle},
+        {L"EAR_PEAR1", aidog::EarAction::EarPear1},
+        {L"EAR_PEAR2", aidog::EarAction::EarPear2},
+        {L"EAR_PEAR3", aidog::EarAction::EarPear3},
+        {L"EAR_STAND", aidog::EarAction::EarStand},
+        {L"EAR_STAND_LEFT", aidog::EarAction::EarStandLeft},
+        {L"EAR_STAND_RIGHT", aidog::EarAction::EarStandRight},
+        {L"EAR_STAND_LEFT_AND_RIGHT", aidog::EarAction::EarStandLeftAndRight},
+        {L"EAR_FOR_WINK", aidog::EarAction::EarForWink},
+        {L"EAR_FOR_VIDEO", aidog::EarAction::EarForVideo},
+        {L"EAR_PERCENTAGE_BASIC", aidog::EarAction::EarPercentageBasic},
+        {L"EAR_FLICK_EXCITED", aidog::EarAction::EarFlickExcited},
+        {L"EAR_FLICK_LEFT_QUICK", aidog::EarAction::EarFlickLeftQuick},
+        {L"EAR_FLICK_RIGHT_QUICK", aidog::EarAction::EarFlickRightQuick},
+        {L"EAR_FLICK_ALTERNATE", aidog::EarAction::EarFlickAlternate},
+        {L"EAR_FLICK_LEFT_AND_RIGHT_UP", aidog::EarAction::EarFlickLeftAndRightUp},
+        {L"EAR_FLICK_RANDOM", aidog::EarAction::EarFlickRandom},
+        {L"EAR_WIGGLE_SUBTLE_SELF_STABLE", aidog::EarAction::EarWiggleSubtleSelfStable},
+        {L"EAR_FLICK_RANDOM_NEGATIVE", aidog::EarAction::EarFlickRandomNegative},
+        {L"EAR_FLICK_RANDOM_POSITIVE", aidog::EarAction::EarFlickRandomPositive},
+        {L"EAR_BREATHE", aidog::EarAction::EarBreathe},
+        {L"EAR_DOWN", aidog::EarAction::EarDown},
+    };
+    return defs;
+}
+
+const std::vector<EnumButtonDef<aidog::ExpressionAction>>& expression_defs()
+{
+    static const std::vector<EnumButtonDef<aidog::ExpressionAction>> defs{
+        {L"IDLE", aidog::ExpressionAction::Idle},
+        {L"HAPPY_01", aidog::ExpressionAction::Happy01},
+        {L"HAPPY_02", aidog::ExpressionAction::Happy02},
+        {L"HAPPY_03", aidog::ExpressionAction::Happy03},
+        {L"HAPPY_04", aidog::ExpressionAction::Happy04},
+        {L"SMILE_01", aidog::ExpressionAction::Smile01},
+        {L"SMILE_02", aidog::ExpressionAction::Smile02},
+        {L"SMILE_03", aidog::ExpressionAction::Smile03},
+        {L"LOVE_01", aidog::ExpressionAction::Love01},
+        {L"LOVE_02", aidog::ExpressionAction::Love02},
+        {L"ANGER_01", aidog::ExpressionAction::Anger01},
+        {L"ANGER_02", aidog::ExpressionAction::Anger02},
+        {L"ANGER_03", aidog::ExpressionAction::Anger03},
+        {L"ANGER_04", aidog::ExpressionAction::Anger04},
+        {L"SAD_01", aidog::ExpressionAction::Sad01},
+        {L"SAD_02", aidog::ExpressionAction::Sad02},
+        {L"SAD_03", aidog::ExpressionAction::Sad03},
+        {L"DOUBLE_SAD_03", aidog::ExpressionAction::DoubleSad03},
+        {L"SAD_04", aidog::ExpressionAction::Sad04},
+        {L"SCARED_01", aidog::ExpressionAction::Scared01},
+        {L"SCARED_02", aidog::ExpressionAction::Scared02},
+        {L"COMFORTABLE_01", aidog::ExpressionAction::Comfortable01},
+        {L"COMFORTABLE_02", aidog::ExpressionAction::Comfortable02},
+        {L"DOUBT_01", aidog::ExpressionAction::Doubt01},
+        {L"DOUBT_02", aidog::ExpressionAction::Doubt02},
+        {L"DOUBT_03", aidog::ExpressionAction::Doubt03},
+        {L"NERVOUS", aidog::ExpressionAction::Nervous},
+        {L"NERVOUS_COMPLETE", aidog::ExpressionAction::NervousComplete},
+        {L"TIRED", aidog::ExpressionAction::Tired},
+        {L"TIRED_COMPLETE", aidog::ExpressionAction::TiredComplete},
+        {L"SLEEPY", aidog::ExpressionAction::Sleepy},
+        {L"SLEEPY_COMPLETE", aidog::ExpressionAction::SleepyComplete},
+        {L"WINK_FAST", aidog::ExpressionAction::WinkFast},
+        {L"WINK_NORMAL", aidog::ExpressionAction::WinkNormal},
+        {L"LOOK_RIGHT", aidog::ExpressionAction::LookRight},
+        {L"LOOK_LEFT", aidog::ExpressionAction::LookLeft},
+        {L"LOOK_LEFT_AND_RIGHT", aidog::ExpressionAction::LookLeftAndRight},
+        {L"NOTE_PARTICLE_CIRCLE", aidog::ExpressionAction::NoteParticleCircle},
+        {L"MUSIC", aidog::ExpressionAction::Music},
+        {L"BASKETBALL", aidog::ExpressionAction::Basketball},
+        {L"PINGPONG", aidog::ExpressionAction::Pingpong},
+        {L"FOOTBALL", aidog::ExpressionAction::Football},
+        {L"SOUND_0", aidog::ExpressionAction::Sound0},
+        {L"SOUND_25", aidog::ExpressionAction::Sound25},
+        {L"SOUND_50", aidog::ExpressionAction::Sound50},
+        {L"SOUND_75", aidog::ExpressionAction::Sound75},
+        {L"SOUND_100", aidog::ExpressionAction::Sound100},
+        {L"SOUND_CIRCLE", aidog::ExpressionAction::SoundCircle},
+        {L"GET_UP", aidog::ExpressionAction::GetUp},
+        {L"EAT_SNACK", aidog::ExpressionAction::EatSnack},
+        {L"CHARGING", aidog::ExpressionAction::Charging},
+        {L"SUNGLASSES", aidog::ExpressionAction::Sunglasses},
+        {L"EYES_FIGHTING", aidog::ExpressionAction::EyesFighting},
+        {L"TURN_OFF", aidog::ExpressionAction::TurnOff},
+        {L"CARING", aidog::ExpressionAction::Caring},
+        {L"SHY", aidog::ExpressionAction::Shy},
+        {L"DRINK", aidog::ExpressionAction::Drink},
+        {L"ALERT", aidog::ExpressionAction::Alert},
+        {L"BORING", aidog::ExpressionAction::Boring},
+        {L"NO_WIFI", aidog::ExpressionAction::NoWifi},
+        {L"SHAME", aidog::ExpressionAction::Shame},
+        {L"SHAME_02", aidog::ExpressionAction::Shame02},
+        {L"SNIFF_EXPRESSION", aidog::ExpressionAction::SniffExpression},
+        {L"DEAD", aidog::ExpressionAction::Dead},
+        {L"PRIDE", aidog::ExpressionAction::Pride},
+        {L"YAWN", aidog::ExpressionAction::Yawn},
+        {L"LIGHT_ON", aidog::ExpressionAction::LightOn},
+        {L"LIGHT_OFF", aidog::ExpressionAction::LightOff},
+    };
+    return defs;
+}
+
+const std::vector<EnumButtonDef<aidog::Tone>>& tone_defs()
+{
+    static const std::vector<EnumButtonDef<aidog::Tone>> defs{
+        {L"STOP", aidog::Tone::Stop},
+        {L"JEEZ", aidog::Tone::Jeez},
+        {L"UH", aidog::Tone::Uh},
+        {L"EATING", aidog::Tone::Eating},
+        {L"CHARGING", aidog::Tone::Charging},
+        {L"CURIOUS", aidog::Tone::Curious},
+        {L"SLEEPY", aidog::Tone::Sleepy},
+        {L"HENG", aidog::Tone::Heng},
+        {L"SAD", aidog::Tone::Sad},
+        {L"ANGRY", aidog::Tone::Angry},
+        {L"DOUBT", aidog::Tone::Doubt},
+        {L"AGREE", aidog::Tone::Agree},
+        {L"ENHENG", aidog::Tone::Enheng},
+        {L"ALERT", aidog::Tone::Alert},
+        {L"WAKE_UP", aidog::Tone::WakeUp},
+        {L"COMFORT", aidog::Tone::Comfort},
+        {L"SIGH", aidog::Tone::Sigh},
+        {L"SNORE", aidog::Tone::Snore},
+        {L"SNIFF", aidog::Tone::Sniff},
+        {L"BEAT_1", aidog::Tone::Beat1},
+        {L"BEAT_2", aidog::Tone::Beat2},
+        {L"BEAT_3", aidog::Tone::Beat3},
+        {L"BEAT_4", aidog::Tone::Beat4},
+        {L"BEAT_5", aidog::Tone::Beat5},
+        {L"BEAT_6", aidog::Tone::Beat6},
+        {L"BEAT_7", aidog::Tone::Beat7},
+    };
+    return defs;
+}
+
 std::wstring clamp_edit_text(HWND edit)
 {
     int len = GetWindowTextLengthW(edit);
@@ -109,6 +333,18 @@ struct DeviceEntry {
 struct SensorState {
     std::optional<aidog::ImuData> imu;
     std::optional<aidog::TofData> tof;
+};
+
+struct PlotPoint {
+    DWORD tick = 0;
+    double value = 0.0;
+};
+
+struct PlotSeries {
+    std::wstring title;
+    std::wstring unit;
+    std::deque<PlotPoint> points;
+    std::optional<double> latest;
 };
 
 struct TaskResult {
@@ -255,6 +491,24 @@ private:
         return app->handle_message(message, wparam, lparam);
     }
 
+    static LRESULT CALLBACK joystick_window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+        auto* app = reinterpret_cast<UserControlApp*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+        if (!app) {
+            return DefWindowProcW(hwnd, message, wparam, lparam);
+        }
+        return app->handle_joystick_message(hwnd, message, wparam, lparam);
+    }
+
+    static LRESULT CALLBACK plot_window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+        auto* app = reinterpret_cast<UserControlApp*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+        if (!app) {
+            return DefWindowProcW(hwnd, message, wparam, lparam);
+        }
+        return app->handle_plot_message(hwnd, message, wparam, lparam);
+    }
+
     LRESULT handle_message(UINT message, WPARAM wparam, LPARAM lparam)
     {
         switch (message) {
@@ -274,7 +528,12 @@ private:
             on_notify(reinterpret_cast<NMHDR*>(lparam));
             return 0;
         case WM_TIMER:
-            refresh_sensor_text();
+            if (wparam == kRefreshTimer) {
+                refresh_sensor_text();
+            } else if (wparam == kPlotTimer) {
+                flush_pending_ear_percentage();
+                refresh_plots();
+            }
             return 0;
         case WM_APP_TASK_DONE:
             on_task_done(reinterpret_cast<TaskResult*>(lparam));
@@ -294,6 +553,44 @@ private:
         }
     }
 
+    LRESULT handle_plot_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+        if (message == WM_PAINT) {
+            paint_plot(hwnd);
+            return 0;
+        }
+        return DefWindowProcW(hwnd, message, wparam, lparam);
+    }
+
+    LRESULT handle_joystick_message(HWND hwnd, UINT message, WPARAM, LPARAM lparam)
+    {
+        switch (message) {
+        case WM_PAINT:
+            paint_joystick(hwnd);
+            return 0;
+        case WM_LBUTTONDOWN:
+            SetCapture(hwnd);
+            update_joystick(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), false);
+            return 0;
+        case WM_MOUSEMOVE:
+            if (GetCapture() == hwnd) {
+                update_joystick(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), false);
+            }
+            return 0;
+        case WM_LBUTTONUP:
+            if (GetCapture() == hwnd) {
+                ReleaseCapture();
+            }
+            update_joystick(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), true);
+            return 0;
+        case WM_CAPTURECHANGED:
+            reset_joystick(true);
+            return 0;
+        default:
+            return DefWindowProcW(hwnd, message, 0, lparam);
+        }
+    }
+
     void on_create()
     {
         worker_ = std::make_unique<Worker>(hwnd_);
@@ -301,6 +598,16 @@ private:
             {
                 std::lock_guard<std::mutex> lock(sensorMutex_);
                 sensors_.imu = imu;
+                const DWORD tick = GetTickCount();
+                if (imu.yawDeg.has_value()) {
+                    add_plot_point(0, *imu.yawDeg, tick);
+                }
+                if (imu.pitchDeg.has_value()) {
+                    add_plot_point(1, *imu.pitchDeg, tick);
+                }
+                if (imu.rollDeg.has_value()) {
+                    add_plot_point(2, *imu.rollDeg, tick);
+                }
             }
             PostMessageW(hwnd_, WM_APP_SENSOR, 0, 0);
         });
@@ -308,6 +615,15 @@ private:
             {
                 std::lock_guard<std::mutex> lock(sensorMutex_);
                 sensors_.tof = tof;
+                const DWORD tick = GetTickCount();
+                auto front = json_number(tof.raw, {"front_mm", "front", "tof_front", "distance_mm"});
+                auto oblique = json_number(tof.raw, {"oblique_mm", "oblique", "tof_oblique", "side_mm"});
+                if (front.has_value()) {
+                    add_plot_point(3, *front, tick);
+                }
+                if (oblique.has_value()) {
+                    add_plot_point(4, *oblique, tick);
+                }
             }
             PostMessageW(hwnd_, WM_APP_SENSOR, 0, 0);
         });
@@ -316,6 +632,8 @@ private:
         create_tabs();
         create_log();
         SetTimer(hwnd_, kRefreshTimer, 500, nullptr);
+        SetTimer(hwnd_, kPlotTimer, 100, nullptr);
+        init_plots();
         append_log(L"Ready");
     }
 
@@ -375,32 +693,18 @@ private:
     {
         motionTitle_ = make_label(pages_[0], L"Joystick movement");
         actionTitle_ = make_label(pages_[0], L"Interaction actions");
-        const ButtonDef moves[] = {
-            {L"Forward", 3001},
-            {L"Back", 3002},
-            {L"Left", 3003},
-            {L"Right", 3004},
-            {L"Step", 3005},
-            {L"Stop", 3006},
-        };
-        create_buttons(pages_[0], moveButtons_, moves, 6);
+        joystick_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"STATIC", L"", WS_CHILD | WS_VISIBLE | SS_NOTIFY,
+            0, 0, kJoystickSize, kJoystickSize, pages_[0], reinterpret_cast<HMENU>(IdJoystick), instance_, nullptr);
+        SetWindowLongPtrW(joystick_, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&joystick_window_proc));
+        SetWindowLongPtrW(joystick_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-        const std::vector<std::pair<const wchar_t*, aidog::Action>> actions{
-            {L"Sit", aidog::Action::SitDown},
-            {L"Stand", aidog::Action::StandUp},
-            {L"Shake Hand", aidog::Action::ShakeHand},
-            {L"Nod", aidog::Action::Nod},
-            {L"Shake Head", aidog::Action::ShakeHead},
-            {L"Stretch", aidog::Action::Stretch},
-            {L"Dance", aidog::Action::Dance},
-            {L"Celebrate", aidog::Action::Celebrate},
-            {L"Sniff", aidog::Action::Sniff},
-            {L"Stop Action", aidog::Action::StopInteraction},
-        };
-        for (std::size_t i = 0; i < actions.size(); ++i) {
-            const int id = 4000 + static_cast<int>(i);
-            actionMap_[id] = actions[i].second;
-            actionButtons_.push_back(make_button(pages_[0], actions[i].first, id));
+        stepButton_ = make_button(pages_[0], L"STEP", 3005);
+        stopButton_ = make_button(pages_[0], L"STOP MOVEMENT", 3006);
+
+        for (const auto& spec : aidog::action_specs()) {
+            const int id = 4000 + static_cast<int>(actionButtons_.size());
+            actionMap_[id] = spec.action;
+            actionButtons_.push_back(make_button(pages_[0], action_text(spec.action), id));
         }
     }
 
@@ -415,44 +719,20 @@ private:
         earValueLabel_ = make_label(pages_[1], L"50%");
         earSendButton_ = make_button(pages_[1], L"Send Ear Percent", 5100);
 
-        const std::vector<std::pair<const wchar_t*, aidog::EarAction>> ears{
-            {L"Stand", aidog::EarAction::EarStand},
-            {L"Left", aidog::EarAction::EarStandLeft},
-            {L"Right", aidog::EarAction::EarStandRight},
-            {L"Both", aidog::EarAction::EarStandLeftAndRight},
-            {L"Shake", aidog::EarAction::EarShakeSynForBle},
-            {L"Breathe", aidog::EarAction::EarBreathe},
-            {L"Down", aidog::EarAction::EarDown},
-            {L"Random", aidog::EarAction::EarFlickRandom},
-        };
-        for (std::size_t i = 0; i < ears.size(); ++i) {
-            const int id = 5200 + static_cast<int>(i);
-            earMap_[id] = ears[i].second;
-            earButtons_.push_back(make_button(pages_[1], ears[i].first, id));
+        for (const auto& def : ear_defs()) {
+            const int id = 5200 + static_cast<int>(earButtons_.size());
+            earMap_[id] = def.value;
+            earButtons_.push_back(make_button(pages_[1], def.text, id));
         }
     }
 
     void create_expression_page()
     {
         expressionTitle_ = make_label(pages_[2], L"Expression test");
-        const std::vector<std::pair<const wchar_t*, aidog::ExpressionAction>> expressions{
-            {L"Happy", aidog::ExpressionAction::Happy01},
-            {L"Smile", aidog::ExpressionAction::Smile01},
-            {L"Love", aidog::ExpressionAction::Love01},
-            {L"Angry", aidog::ExpressionAction::Anger01},
-            {L"Sad", aidog::ExpressionAction::Sad01},
-            {L"Doubt", aidog::ExpressionAction::Doubt01},
-            {L"Sleepy", aidog::ExpressionAction::Sleepy},
-            {L"Wink", aidog::ExpressionAction::WinkNormal},
-            {L"Music", aidog::ExpressionAction::Music},
-            {L"Eat Snack", aidog::ExpressionAction::EatSnack},
-            {L"Alert", aidog::ExpressionAction::Alert},
-            {L"Yawn", aidog::ExpressionAction::Yawn},
-        };
-        for (std::size_t i = 0; i < expressions.size(); ++i) {
-            const int id = 6000 + static_cast<int>(i);
-            expressionMap_[id] = expressions[i].second;
-            expressionButtons_.push_back(make_button(pages_[2], expressions[i].first, id));
+        for (const auto& def : expression_defs()) {
+            const int id = 6000 + static_cast<int>(expressionButtons_.size());
+            expressionMap_[id] = def.value;
+            expressionButtons_.push_back(make_button(pages_[2], def.text, id));
         }
     }
 
@@ -460,24 +740,10 @@ private:
     {
         audioTitle_ = make_label(pages_[3], L"Audio test");
         volumeTitle_ = make_label(pages_[3], L"Volume level");
-        const std::vector<std::pair<const wchar_t*, aidog::Tone>> tones{
-            {L"Stop", aidog::Tone::Stop},
-            {L"Jeez", aidog::Tone::Jeez},
-            {L"Eating", aidog::Tone::Eating},
-            {L"Curious", aidog::Tone::Curious},
-            {L"Sleepy", aidog::Tone::Sleepy},
-            {L"Sad", aidog::Tone::Sad},
-            {L"Angry", aidog::Tone::Angry},
-            {L"Agree", aidog::Tone::Agree},
-            {L"Alert", aidog::Tone::Alert},
-            {L"Beat1", aidog::Tone::Beat1},
-            {L"Beat2", aidog::Tone::Beat2},
-            {L"Beat3", aidog::Tone::Beat3},
-        };
-        for (std::size_t i = 0; i < tones.size(); ++i) {
-            const int id = 7000 + static_cast<int>(i);
-            toneMap_[id] = tones[i].second;
-            toneButtons_.push_back(make_button(pages_[3], tones[i].first, id));
+        for (const auto& def : tone_defs()) {
+            const int id = 7000 + static_cast<int>(toneButtons_.size());
+            toneMap_[id] = def.value;
+            toneButtons_.push_back(make_button(pages_[3], def.text, id));
         }
         for (int level = 0; level <= 4; ++level) {
             auto text = std::to_wstring(level) + L" Level";
@@ -494,6 +760,14 @@ private:
             0, 0, 120, 24, pages_[4], reinterpret_cast<HMENU>(IdTofCheck), instance_, nullptr);
         hzEdit_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"20", WS_CHILD | WS_VISIBLE | ES_NUMBER,
             0, 0, 50, 24, pages_[4], reinterpret_cast<HMENU>(IdHzEdit), instance_, nullptr);
+        applyHzButton_ = make_button(pages_[4], L"Apply Hz", IdApplyHz);
+        clearPlotsButton_ = make_button(pages_[4], L"Clear Plots", IdClearPlots);
+        for (int i = 0; i < 5; ++i) {
+            plotWindows_[i] = CreateWindowExW(WS_EX_CLIENTEDGE, L"STATIC", L"", WS_CHILD | WS_VISIBLE | SS_NOTIFY,
+                0, 0, 100, 100, pages_[4], reinterpret_cast<HMENU>(static_cast<INT_PTR>(IdPlotBase + i)), instance_, nullptr);
+            SetWindowLongPtrW(plotWindows_[i], GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&plot_window_proc));
+            SetWindowLongPtrW(plotWindows_[i], GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+        }
         sensorText_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"No data", WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY | WS_VSCROLL,
             0, 0, 400, 260, pages_[4], reinterpret_cast<HMENU>(IdSensorText), instance_, nullptr);
     }
@@ -533,45 +807,88 @@ private:
         MoveWindow(logEdit_, pad, height - logH - pad, width - pad * 2, logH, TRUE);
     }
 
-    void layout_pages(int width, int)
+    void layout_pages(int width, int height)
     {
         MoveWindow(motionTitle_, 18, 18, 180, 24, TRUE);
-        MoveWindow(actionTitle_, 390, 18, 180, 24, TRUE);
-        for (std::size_t i = 0; i < moveButtons_.size(); ++i) {
-            MoveWindow(moveButtons_[i], 18 + static_cast<int>(i % 2) * 118, 56 + static_cast<int>(i / 2) * 42, 110, 34, TRUE);
-        }
+        MoveWindow(joystick_, 18, 52, kJoystickSize, kJoystickSize, TRUE);
+        MoveWindow(stepButton_, 18, 328, kJoystickSize, 34, TRUE);
+        MoveWindow(stopButton_, 18, 370, kJoystickSize, 34, TRUE);
+
+        const int actionX = 304;
+        const int actionButtonW = std::max(120, (width - actionX - 28) / 5 - 8);
+        MoveWindow(actionTitle_, actionX, 18, 180, 24, TRUE);
         for (std::size_t i = 0; i < actionButtons_.size(); ++i) {
-            MoveWindow(actionButtons_[i], 390 + static_cast<int>(i % 4) * 126, 56 + static_cast<int>(i / 4) * 42, 118, 34, TRUE);
+            MoveWindow(actionButtons_[i],
+                actionX + static_cast<int>(i % 5) * (actionButtonW + 8),
+                56 + static_cast<int>(i / 5) * 38,
+                actionButtonW,
+                30,
+                TRUE);
         }
 
         MoveWindow(earTitle_, 18, 18, 180, 24, TRUE);
-        MoveWindow(earSlider_, 18, 52, 360, 36, TRUE);
-        MoveWindow(earValueLabel_, 390, 56, 60, 24, TRUE);
-        MoveWindow(earSendButton_, 460, 50, 150, 30, TRUE);
+        MoveWindow(earSlider_, 18, 52, std::max(360, width - 120), 36, TRUE);
+        MoveWindow(earValueLabel_, width - 84, 56, 60, 24, TRUE);
+        ShowWindow(earSendButton_, SW_HIDE);
         MoveWindow(earActionTitle_, 18, 104, 180, 24, TRUE);
+        const int earButtonW = std::max(160, (width - 44) / 4 - 8);
         for (std::size_t i = 0; i < earButtons_.size(); ++i) {
-            MoveWindow(earButtons_[i], 18 + static_cast<int>(i % 4) * 120, 138 + static_cast<int>(i / 4) * 42, 110, 34, TRUE);
+            MoveWindow(earButtons_[i],
+                18 + static_cast<int>(i % 4) * (earButtonW + 8),
+                138 + static_cast<int>(i / 4) * 42,
+                earButtonW,
+                34,
+                TRUE);
         }
 
         MoveWindow(expressionTitle_, 18, 18, 180, 24, TRUE);
+        const int expressionButtonW = std::max(120, (width - 48) / 6 - 8);
         for (std::size_t i = 0; i < expressionButtons_.size(); ++i) {
-            MoveWindow(expressionButtons_[i], 18 + static_cast<int>(i % 5) * 120, 56 + static_cast<int>(i / 5) * 42, 112, 34, TRUE);
+            MoveWindow(expressionButtons_[i],
+                18 + static_cast<int>(i % 6) * (expressionButtonW + 8),
+                56 + static_cast<int>(i / 6) * 38,
+                expressionButtonW,
+                30,
+                TRUE);
         }
 
         MoveWindow(audioTitle_, 18, 18, 180, 24, TRUE);
+        const int toneButtonW = std::max(120, (width - 48) / 6 - 8);
         for (std::size_t i = 0; i < toneButtons_.size(); ++i) {
-            MoveWindow(toneButtons_[i], 18 + static_cast<int>(i % 5) * 120, 56 + static_cast<int>(i / 5) * 42, 112, 34, TRUE);
+            MoveWindow(toneButtons_[i],
+                18 + static_cast<int>(i % 6) * (toneButtonW + 8),
+                56 + static_cast<int>(i / 6) * 38,
+                toneButtonW,
+                30,
+                TRUE);
         }
-        MoveWindow(volumeTitle_, 18, 168, 180, 24, TRUE);
+        MoveWindow(volumeTitle_, 18, 238, 180, 24, TRUE);
         for (std::size_t i = 0; i < volumeButtons_.size(); ++i) {
-            MoveWindow(volumeButtons_[i], 18 + static_cast<int>(i) * 92, 202, 82, 38, TRUE);
+            MoveWindow(volumeButtons_[i], 18 + static_cast<int>(i) * 100, 272, 90, 38, TRUE);
         }
 
         MoveWindow(sensorTitle_, 18, 18, 180, 24, TRUE);
         MoveWindow(imuCheck_, 18, 52, 120, 24, TRUE);
         MoveWindow(tofCheck_, 148, 52, 120, 24, TRUE);
         MoveWindow(hzEdit_, 280, 52, 60, 24, TRUE);
-        MoveWindow(sensorText_, 18, 90, std::max(300, width - 36), 260, TRUE);
+        MoveWindow(applyHzButton_, 352, 50, 92, 28, TRUE);
+        MoveWindow(clearPlotsButton_, 456, 50, 110, 28, TRUE);
+
+        const int leftW = std::max(320, (width - 54) / 2);
+        const int rightW = std::max(320, width - leftW - 54);
+        const int topY = 92;
+        const int gap = 12;
+        const int availableH = std::max(330, height - topY - 18);
+        const int plotH = std::max(100, (availableH - gap * 2) / 3);
+        const int row1 = topY;
+        const int row2 = topY + plotH + gap;
+        const int row3 = topY + (plotH + gap) * 2;
+        MoveWindow(plotWindows_[0], 18, row1, leftW, plotH, TRUE);
+        MoveWindow(plotWindows_[1], 18, row2, leftW, plotH, TRUE);
+        MoveWindow(plotWindows_[2], 18, row3, leftW, plotH, TRUE);
+        MoveWindow(plotWindows_[3], 36 + leftW, row1, rightW, plotH, TRUE);
+        MoveWindow(plotWindows_[4], 36 + leftW, row2, rightW, plotH, TRUE);
+        MoveWindow(sensorText_, 36 + leftW, row3, rightW, plotH, TRUE);
     }
 
     void on_command(int id)
@@ -588,7 +905,11 @@ private:
             toggle_imu();
         } else if (id == IdTofCheck) {
             toggle_tof();
-        } else if (id >= 3001 && id <= 3006) {
+        } else if (id == IdApplyHz) {
+            apply_sensor_hz();
+        } else if (id == IdClearPlots) {
+            clear_plots();
+        } else if (id == 3005 || id == 3006) {
             handle_movement(id);
         } else if (auto it = actionMap_.find(id); it != actionMap_.end()) {
             post_command(L"Action", [this, action = it->second]() { dog_.send_interaction(action); });
@@ -621,6 +942,264 @@ private:
         }
         const int value = static_cast<int>(SendMessageW(earSlider_, TBM_GETPOS, 0, 0));
         SetWindowTextW(earValueLabel_, (std::to_wstring(value) + L"%").c_str());
+        queue_ear_percentage(value);
+    }
+
+    void paint_joystick(HWND hwnd)
+    {
+        PAINTSTRUCT ps{};
+        HDC hdc = BeginPaint(hwnd, &ps);
+        RECT rc{};
+        GetClientRect(hwnd, &rc);
+        FillRect(hdc, &rc, reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1));
+
+        const int cx = (rc.right - rc.left) / 2;
+        const int cy = (rc.bottom - rc.top) / 2;
+        const int radius = std::min(cx, cy) - 28;
+        const int knobRadius = 25;
+
+        HPEN gridPen = CreatePen(PS_SOLID, 1, RGB(210, 216, 225));
+        HPEN borderPen = CreatePen(PS_SOLID, 2, RGB(150, 160, 176));
+        HBRUSH diskBrush = CreateSolidBrush(RGB(248, 250, 252));
+        HBRUSH knobBrush = CreateSolidBrush(RGB(31, 111, 235));
+        HBRUSH oldBrush = static_cast<HBRUSH>(SelectObject(hdc, diskBrush));
+        HPEN oldPen = static_cast<HPEN>(SelectObject(hdc, borderPen));
+
+        Ellipse(hdc, cx - radius, cy - radius, cx + radius, cy + radius);
+        SelectObject(hdc, gridPen);
+        MoveToEx(hdc, cx, cy - radius + 12, nullptr);
+        LineTo(hdc, cx, cy + radius - 12);
+        MoveToEx(hdc, cx - radius + 12, cy, nullptr);
+        LineTo(hdc, cx + radius - 12, cy);
+
+        SetBkMode(hdc, TRANSPARENT);
+        SetTextColor(hdc, RGB(70, 78, 92));
+        TextOutW(hdc, cx - 18, 8, L"Forward", 7);
+        TextOutW(hdc, cx - 14, rc.bottom - 24, L"Back", 4);
+        TextOutW(hdc, 10, cy - 8, L"Left", 4);
+        TextOutW(hdc, rc.right - 42, cy - 8, L"Right", 5);
+
+        SelectObject(hdc, knobBrush);
+        SelectObject(hdc, borderPen);
+        Ellipse(hdc,
+            joystickKnobX_ - knobRadius,
+            joystickKnobY_ - knobRadius,
+            joystickKnobX_ + knobRadius,
+            joystickKnobY_ + knobRadius);
+
+        SelectObject(hdc, oldPen);
+        SelectObject(hdc, oldBrush);
+        DeleteObject(gridPen);
+        DeleteObject(borderPen);
+        DeleteObject(diskBrush);
+        DeleteObject(knobBrush);
+        EndPaint(hwnd, &ps);
+    }
+
+    void update_joystick(int x, int y, bool release)
+    {
+        const int cx = kJoystickSize / 2;
+        const int cy = kJoystickSize / 2;
+        if (release) {
+            reset_joystick(true);
+            return;
+        }
+
+        double dx = static_cast<double>(x - cx);
+        double dy = static_cast<double>(y - cy);
+        double dist = std::sqrt(dx * dx + dy * dy);
+        constexpr double maxRadius = 88.0;
+        if (dist > maxRadius) {
+            const double scale = maxRadius / dist;
+            dx *= scale;
+            dy *= scale;
+            dist = maxRadius;
+        }
+
+        joystickKnobX_ = cx + static_cast<int>(std::round(dx));
+        joystickKnobY_ = cy + static_cast<int>(std::round(dy));
+        InvalidateRect(joystick_, nullptr, TRUE);
+
+        if (dist < kJoystickDeadzone) {
+            stop_active_movement();
+            return;
+        }
+
+        aidog::Movement movement = aidog::Movement::Forward;
+        if (std::abs(dx) > std::abs(dy)) {
+            movement = dx > 0 ? aidog::Movement::Right : aidog::Movement::Left;
+        } else {
+            movement = dy > 0 ? aidog::Movement::Back : aidog::Movement::Forward;
+        }
+        start_active_movement(movement);
+    }
+
+    void reset_joystick(bool stop)
+    {
+        joystickKnobX_ = kJoystickSize / 2;
+        joystickKnobY_ = kJoystickSize / 2;
+        if (joystick_) {
+            InvalidateRect(joystick_, nullptr, TRUE);
+        }
+        if (stop) {
+            stop_active_movement();
+        }
+    }
+
+    void init_plots()
+    {
+        plotSeries_[0].title = L"IMU yaw";
+        plotSeries_[0].unit = L"deg";
+        plotSeries_[1].title = L"IMU pitch";
+        plotSeries_[1].unit = L"deg";
+        plotSeries_[2].title = L"IMU roll";
+        plotSeries_[2].unit = L"deg";
+        plotSeries_[3].title = L"TOF front";
+        plotSeries_[3].unit = L"mm";
+        plotSeries_[4].title = L"TOF oblique";
+        plotSeries_[4].unit = L"mm";
+    }
+
+    void add_plot_point(int index, double value, DWORD tick)
+    {
+        if (index < 0 || index >= 5) {
+            return;
+        }
+        auto& series = plotSeries_[index];
+        series.latest = value;
+        series.points.push_back({tick, value});
+        while (!series.points.empty() && tick - series.points.front().tick > kPlotHistoryMs) {
+            series.points.pop_front();
+        }
+    }
+
+    void refresh_plots()
+    {
+        for (auto hwnd : plotWindows_) {
+            if (hwnd) {
+                InvalidateRect(hwnd, nullptr, TRUE);
+            }
+        }
+    }
+
+    void clear_plots()
+    {
+        for (auto& series : plotSeries_) {
+            series.points.clear();
+            series.latest.reset();
+        }
+        refresh_plots();
+        append_log(L"Sensor plots cleared");
+    }
+
+    std::optional<double> json_number(const nlohmann::json& value, std::initializer_list<const char*> keys)
+    {
+        for (const auto* key : keys) {
+            auto it = value.find(key);
+            if (it != value.end() && it->is_number()) {
+                return it->get<double>();
+            }
+        }
+        return std::nullopt;
+    }
+
+    void paint_plot(HWND hwnd)
+    {
+        int index = static_cast<int>(GetWindowLongPtrW(hwnd, GWLP_ID)) - IdPlotBase;
+        if (index < 0 || index >= 5) {
+            return;
+        }
+
+        PAINTSTRUCT ps{};
+        HDC hdc = BeginPaint(hwnd, &ps);
+        RECT rc{};
+        GetClientRect(hwnd, &rc);
+        FillRect(hdc, &rc, reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1));
+
+        auto& series = plotSeries_[index];
+        const int width = rc.right - rc.left;
+        const int height = rc.bottom - rc.top;
+        const int left = 42;
+        const int right = width - 8;
+        const int top = 24;
+        const int bottom = height - 22;
+
+        SetBkMode(hdc, TRANSPARENT);
+        SetTextColor(hdc, RGB(20, 24, 32));
+        TextOutW(hdc, 8, 5, series.title.c_str(), static_cast<int>(series.title.size()));
+        if (series.latest.has_value()) {
+            const auto latest = number_text(*series.latest) + L" " + series.unit;
+            TextOutW(hdc, std::max(8, width - 110), 5, latest.c_str(), static_cast<int>(latest.size()));
+        }
+
+        HPEN gridPen = CreatePen(PS_SOLID, 1, RGB(235, 238, 244));
+        HPEN axisPen = CreatePen(PS_SOLID, 1, RGB(198, 204, 214));
+        HPEN linePen = CreatePen(PS_SOLID, 2, RGB(31, 111, 235));
+        HPEN oldPen = static_cast<HPEN>(SelectObject(hdc, gridPen));
+        for (int i = 0; i <= 4; ++i) {
+            const int y = top + (bottom - top) * i / 4;
+            MoveToEx(hdc, left, y, nullptr);
+            LineTo(hdc, right, y);
+            const int x = left + (right - left) * i / 4;
+            MoveToEx(hdc, x, top, nullptr);
+            LineTo(hdc, x, bottom);
+        }
+        SelectObject(hdc, axisPen);
+        Rectangle(hdc, left, top, right, bottom);
+
+        if (series.points.empty()) {
+            const wchar_t text[] = L"No data";
+            TextOutW(hdc, width / 2 - 24, height / 2 - 8, text, 7);
+        } else {
+            double minValue = series.points.front().value;
+            double maxValue = series.points.front().value;
+            for (const auto& point : series.points) {
+                minValue = std::min(minValue, point.value);
+                maxValue = std::max(maxValue, point.value);
+            }
+            if (std::abs(maxValue - minValue) < 1e-9) {
+                const double margin = std::max(1.0, std::abs(maxValue) * 0.1);
+                minValue -= margin;
+                maxValue += margin;
+            } else {
+                const double margin = (maxValue - minValue) * 0.12;
+                minValue -= margin;
+                maxValue += margin;
+            }
+
+            const DWORD now = GetTickCount();
+            SelectObject(hdc, linePen);
+            bool first = true;
+            for (const auto& point : series.points) {
+                const double age = static_cast<double>(now - point.tick);
+                const double xRatio = std::clamp(1.0 - age / static_cast<double>(kPlotHistoryMs), 0.0, 1.0);
+                const double yRatio = (maxValue - point.value) / (maxValue - minValue);
+                const int x = left + static_cast<int>(xRatio * (right - left));
+                const int y = top + static_cast<int>(yRatio * (bottom - top));
+                if (first) {
+                    MoveToEx(hdc, x, y, nullptr);
+                    first = false;
+                } else {
+                    LineTo(hdc, x, y);
+                }
+            }
+
+            SetTextColor(hdc, RGB(92, 100, 112));
+            auto maxText = number_text(maxValue);
+            auto minText = number_text(minValue);
+            TextOutW(hdc, 4, top, maxText.c_str(), static_cast<int>(maxText.size()));
+            TextOutW(hdc, 4, bottom - 14, minText.c_str(), static_cast<int>(minText.size()));
+        }
+
+        SetTextColor(hdc, RGB(92, 100, 112));
+        TextOutW(hdc, left, height - 18, L"-12s", 4);
+        TextOutW(hdc, right - 28, height - 18, L"now", 3);
+
+        SelectObject(hdc, oldPen);
+        DeleteObject(gridPen);
+        DeleteObject(axisPen);
+        DeleteObject(linePen);
+        EndPaint(hwnd, &ps);
     }
 
     void scan_devices()
@@ -660,15 +1239,17 @@ private:
     void disconnect_device()
     {
         worker_->post(L"Disconnect", [this]() {
+            activeMovement_.reset();
             cleanup_robot();
             connected_.store(false);
         });
+        reset_joystick(false);
     }
 
     void handle_movement(int id)
     {
         if (id == 3006) {
-            post_command(L"Stop movement", [this]() { dog_.stop_movement(); });
+            reset_joystick(true);
             return;
         }
         aidog::Movement movement = aidog::Movement::Forward;
@@ -681,13 +1262,68 @@ private:
         } else if (id == 3005) {
             movement = aidog::Movement::Step;
         }
+        start_active_movement(movement);
+    }
+
+    void start_active_movement(aidog::Movement movement)
+    {
+        if (activeMovement_.has_value() && activeMovement_.value() == movement) {
+            return;
+        }
+        activeMovement_ = movement;
         post_command(L"Movement", [this, movement]() { dog_.start_movement(movement); });
+    }
+
+    void stop_active_movement()
+    {
+        if (!activeMovement_.has_value()) {
+            return;
+        }
+        activeMovement_.reset();
+        post_command(L"Stop movement", [this]() { dog_.stop_movement(); });
     }
 
     void send_ear_percentage()
     {
         const int value = static_cast<int>(SendMessageW(earSlider_, TBM_GETPOS, 0, 0));
         SetWindowTextW(earValueLabel_, (std::to_wstring(value) + L"%").c_str());
+        post_command(L"Ear percent", [this, value]() { dog_.send_ear_percentage(value); });
+    }
+
+    void queue_ear_percentage(int value)
+    {
+        if (!connected_.load()) {
+            return;
+        }
+        const DWORD now = GetTickCount();
+        if (lastEarPercent_.has_value() && *lastEarPercent_ == value && now - lastEarPercentTick_ < 250) {
+            return;
+        }
+        if (now - lastEarPercentTick_ < kEarSendIntervalMs) {
+            pendingEarPercent_ = value;
+            return;
+        }
+        send_ear_percentage_value(value);
+    }
+
+    void flush_pending_ear_percentage()
+    {
+        if (!pendingEarPercent_.has_value()) {
+            return;
+        }
+        const DWORD now = GetTickCount();
+        if (now - lastEarPercentTick_ < kEarSendIntervalMs) {
+            return;
+        }
+        const int value = *pendingEarPercent_;
+        pendingEarPercent_.reset();
+        send_ear_percentage_value(value);
+    }
+
+    void send_ear_percentage_value(int value)
+    {
+        lastEarPercent_ = value;
+        lastEarPercentTick_ = GetTickCount();
         post_command(L"Ear percent", [this, value]() { dog_.send_ear_percentage(value); });
     }
 
@@ -703,6 +1339,25 @@ private:
         const bool enabled = Button_GetCheck(tofCheck_) == BST_CHECKED;
         const int hz = get_hz();
         post_command(enabled ? L"Enable TOF" : L"Disable TOF", [this, enabled, hz]() { dog_.request_tof_stream(enabled, hz); });
+    }
+
+    void apply_sensor_hz()
+    {
+        const int hz = get_hz();
+        const bool imuOn = Button_GetCheck(imuCheck_) == BST_CHECKED;
+        const bool tofOn = Button_GetCheck(tofCheck_) == BST_CHECKED;
+        if (!imuOn && !tofOn) {
+            append_log(L"Sensor Hz updated locally; streams are off");
+            return;
+        }
+        post_command(L"Apply sensor Hz", [this, hz, imuOn, tofOn]() {
+            if (imuOn) {
+                dog_.request_imu_stream(true, hz);
+            }
+            if (tofOn) {
+                dog_.request_tof_stream(true, hz);
+            }
+        });
     }
 
     void post_command(std::wstring label, std::function<void()> fn)
@@ -807,6 +1462,7 @@ private:
             dog_.stop_movement();
         } catch (...) {
         }
+        activeMovement_.reset();
         try {
             dog_.disconnect();
         } catch (...) {
@@ -816,6 +1472,7 @@ private:
     void on_close()
     {
         KillTimer(hwnd_, kRefreshTimer);
+        KillTimer(hwnd_, kPlotTimer);
         if (worker_) {
             worker_->post(L"Shutdown", [this]() {
                 cleanup_robot();
@@ -844,15 +1501,20 @@ private:
     HWND audioTitle_ = nullptr;
     HWND volumeTitle_ = nullptr;
     HWND sensorTitle_ = nullptr;
+    HWND joystick_ = nullptr;
+    HWND stepButton_ = nullptr;
+    HWND stopButton_ = nullptr;
     HWND earSlider_ = nullptr;
     HWND earValueLabel_ = nullptr;
     HWND earSendButton_ = nullptr;
     HWND imuCheck_ = nullptr;
     HWND tofCheck_ = nullptr;
     HWND hzEdit_ = nullptr;
+    HWND applyHzButton_ = nullptr;
+    HWND clearPlotsButton_ = nullptr;
+    HWND plotWindows_[5]{};
     HWND sensorText_ = nullptr;
 
-    std::vector<HWND> moveButtons_;
     std::vector<HWND> actionButtons_;
     std::vector<HWND> earButtons_;
     std::vector<HWND> expressionButtons_;
@@ -871,7 +1533,14 @@ private:
     std::vector<DeviceEntry> devices_;
     std::mutex sensorMutex_;
     SensorState sensors_;
+    PlotSeries plotSeries_[5];
     std::deque<std::wstring> logLines_;
+    std::optional<aidog::Movement> activeMovement_;
+    std::optional<int> lastEarPercent_;
+    std::optional<int> pendingEarPercent_;
+    DWORD lastEarPercentTick_ = 0;
+    int joystickKnobX_ = kJoystickSize / 2;
+    int joystickKnobY_ = kJoystickSize / 2;
 };
 
 } // namespace

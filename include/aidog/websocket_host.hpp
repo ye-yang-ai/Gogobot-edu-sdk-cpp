@@ -22,6 +22,8 @@ class AiDog;
 
 class WebSocketHost : public ITransport {
 public:
+    using ConnectionCallback = std::function<void(bool connected)>;
+
     WebSocketHost(std::string host = "0.0.0.0", int port = 8766, AiDog* dog = nullptr);
     ~WebSocketHost() override;
 
@@ -31,6 +33,7 @@ public:
     void set_imu_callback(ImuCallback callback);
     void set_tof_callback(TofCallback callback);
     void set_pcm_callback(PcmCallback callback);
+    void set_connection_callback(ConnectionCallback callback);
     void start(double waitReadyS = 5.0);
     void stop();
     bool wait_robot_connected(double timeoutS = 30.0, double pollS = 0.1) const;

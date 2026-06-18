@@ -49,6 +49,7 @@ public:
     void send_expression(ExpressionAction expression, const std::string& transport = "ble");
     void send_audio(Tone tone, const std::string& transport = "ble");
     void set_volume(int volume, std::optional<Tone> verifyTone = std::nullopt, double verifyDelayS = 0.2, const std::string& transport = "ble");
+    void set_dev_pc_ws_ip(const std::string& ip);
     void request_imu_stream(bool enable = true, int hz = 20, const std::string& transport = "ble");
     void request_tof_stream(bool enable = true, int hz = 20, const std::string& transport = "ble");
     void send_raw(std::uint8_t mode, std::span<const std::uint8_t> data, const std::string& transport = "ble");
@@ -69,6 +70,7 @@ public:
     int add_tof_listener(TofCallback callback);
     void remove_imu_listener(int id);
     void remove_tof_listener(int id);
+    bool wait_interaction_ready(double timeoutS = 5.0);
     void feed_sensor_stream_json(std::string_view text);
     void feed_notify_bytes(std::span<const std::uint8_t> data);
 

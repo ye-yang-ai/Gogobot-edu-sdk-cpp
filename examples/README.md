@@ -1,8 +1,6 @@
 # Examples
 
-The BLE examples are aligned with the Python SDK example layout. WebSocket
-examples are kept as the current C++ host examples and are not part of this BLE
-alignment pass.
+The BLE and WebSocket examples are aligned with the Python SDK example layout.
 
 Every `.cpp` example starts with a short usage block that shows purpose, risk,
 commands, expected result, and exit behavior.
@@ -37,6 +35,8 @@ examples/
     bluetooth/
       ble_scan_and_connect.cpp
       ble_connect_by_address.cpp
+    websocket/
+      ws_connection_test.cpp
   02_actions/
     bluetooth/
       ble_basic_actions.cpp
@@ -44,16 +44,22 @@ examples/
       ble_ears_expressions_audio.cpp
     websocket/
       ws_basic_actions.cpp
+      ws_choreography.cpp
+      ws_ears_expressions_audio.cpp
   03_movement/
     bluetooth/
       ble_directional_move.cpp
       ble_timed_move.cpp
+    websocket/
+      ws_directional_move.cpp
+      ws_timed_move.cpp
   04_sensors/
     bluetooth/
       ble_imu_read.cpp
       ble_tof_read.cpp
     websocket/
-      ws_imu_read.cpp
+      ws_imu_lan_read.cpp
+      ws_tof_lan_read.cpp
   06_robot_adjust/
     safe_pose_adjust.cpp
     custom_action.cpp
@@ -72,8 +78,14 @@ examples/
 | `03_movement/bluetooth/ble_timed_move.cpp` | `aidog_ble_timed_move` | Run a timed BLE movement sequence | Medium | `.\build\Release\aidog_ble_timed_move.exe --address AA:BB:CC:DD:EE:FF --duration 1 --pause 1 --yes` |
 | `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20` |
 | `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20` |
-| `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe` |
-| `04_sensors/websocket/ws_imu_read.cpp` | `aidog_ws_imu_read` | Read WebSocket IMU JSON stream | Low | `.\build\Release\aidog_ws_imu_read.exe` |
+| `01_connection/websocket/ws_connection_test.cpp` | `aidog_ws_connection_test` | Wait for a robot WebSocket connection | Low | `.\build\Release\aidog_ws_connection_test.exe` |
+| `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe --action sit_down --yes` |
+| `02_actions/websocket/ws_choreography.cpp` | `aidog_ws_choreography` | Run a combined WebSocket choreography | High | `.\build\Release\aidog_ws_choreography.exe --yes` |
+| `02_actions/websocket/ws_ears_expressions_audio.cpp` | `aidog_ws_ears_expressions_audio` | Control ears, expression, audio, and volume over WebSocket | Low/Medium | `.\build\Release\aidog_ws_ears_expressions_audio.exe --volume 2` |
+| `03_movement/websocket/ws_directional_move.cpp` | `aidog_ws_directional_move` | Move in one selected direction over WebSocket | High | `.\build\Release\aidog_ws_directional_move.exe --direction forward --duration 1 --yes` |
+| `03_movement/websocket/ws_timed_move.cpp` | `aidog_ws_timed_move` | Run a timed WebSocket movement sequence | High | `.\build\Release\aidog_ws_timed_move.exe --duration 1 --pause 1 --yes` |
+| `04_sensors/websocket/ws_imu_lan_read.cpp` | `aidog_ws_imu_lan_read` | Read WebSocket IMU JSON stream | Low | `.\build\Release\aidog_ws_imu_lan_read.exe --hz 20 --seconds 20` |
+| `04_sensors/websocket/ws_tof_lan_read.cpp` | `aidog_ws_tof_lan_read` | Read WebSocket TOF JSON stream | Low | `.\build\Release\aidog_ws_tof_lan_read.exe --hz 20 --seconds 20` |
 | `06_robot_adjust/safe_pose_adjust.cpp` | `aidog_safe_pose_adjust` | Run low-amplitude body and foot adjustment | High | `.\build\Release\aidog_safe_pose_adjust.exe --address AA:BB:CC:DD:EE:FF --yes` |
 | `06_robot_adjust/custom_action.cpp` | `aidog_custom_action` | Run a sniff-like custom robot-adjustment action | High | `.\build\Release\aidog_custom_action.exe --address AA:BB:CC:DD:EE:FF --yes` |
 
