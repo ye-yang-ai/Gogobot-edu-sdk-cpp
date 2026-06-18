@@ -105,13 +105,21 @@ if(AIDOG_BUILD_EXAMPLES)
         aidog_add_example(aidog_safe_pose_adjust examples/06_robot_adjust/safe_pose_adjust.cpp)
         aidog_add_example(aidog_custom_action examples/06_robot_adjust/custom_action.cpp)
 
+        aidog_add_example(aidog_set_dev_pc_ws_ip_ble tools/set_dev_pc_ws_ip_ble.cpp)
+
         add_executable(aidog_user_control_ble WIN32 tools/user_control_ble_win.cpp)
         target_link_libraries(aidog_user_control_ble PRIVATE aidog::sdk comctl32)
     endif()
 
     if(AIDOG_ENABLE_WEBSOCKET)
+        aidog_add_example(aidog_ws_connection_test examples/01_connection/websocket/ws_connection_test.cpp)
         aidog_add_example(aidog_ws_basic_actions examples/02_actions/websocket/ws_basic_actions.cpp)
-        aidog_add_example(aidog_ws_imu_read examples/04_sensors/websocket/ws_imu_read.cpp)
+        aidog_add_example(aidog_ws_choreography examples/02_actions/websocket/ws_choreography.cpp)
+        aidog_add_example(aidog_ws_ears_expressions_audio examples/02_actions/websocket/ws_ears_expressions_audio.cpp)
+        aidog_add_example(aidog_ws_directional_move examples/03_movement/websocket/ws_directional_move.cpp)
+        aidog_add_example(aidog_ws_timed_move examples/03_movement/websocket/ws_timed_move.cpp)
+        aidog_add_example(aidog_ws_imu_lan_read examples/04_sensors/websocket/ws_imu_lan_read.cpp)
+        aidog_add_example(aidog_ws_tof_lan_read examples/04_sensors/websocket/ws_tof_lan_read.cpp)
     endif()
 endif()
 

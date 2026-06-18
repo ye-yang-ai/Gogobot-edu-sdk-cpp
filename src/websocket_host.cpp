@@ -3,6 +3,7 @@
 #if AIDOG_ENABLE_WEBSOCKET
 
 #include <chrono>
+#include <exception>
 #include <set>
 #include <thread>
 
@@ -43,14 +44,21 @@ struct WebSocketHost::Impl {
                 connected = true;
             }
             cv.notify_all();
+            if (onConnection) {
+                onConnection(true);
+            }
             if (dog != nullptr) {
-                dog->on_ws_robot_connected();
+                std::thread([dogPtr = dog]() {
+                    dogPtr->on_ws_robot_connected();
+                }).detach();
             }
         });
 
         server.set_close_handler([this](ConnectionHdl) {
-            if (dog != nullptr) {
-                dog->on_ws_robot_disconnected();
+            if (dog != nullptr && !stopping) {
+                std::thread([dogPtr = dog]() {
+                    dogPtr->on_ws_robot_disconnected();
+                }).detach();
             }
             {
                 std::lock_guard<std::mutex> lock(mutex);
@@ -58,6 +66,9 @@ struct WebSocketHost::Impl {
                 connected = false;
             }
             cv.notify_all();
+            if (onConnection) {
+                onConnection(false);
+            }
         });
 
         server.set_fail_handler([this](ConnectionHdl) {
@@ -89,10 +100,13 @@ struct WebSocketHost::Impl {
     std::optional<ConnectionHdl> active;
     bool ready = false;
     bool connected = false;
+    bool stopping = false;
+    std::exception_ptr startError;
     std::map<std::string, nlohmann::json> acks;
     ImuCallback onImu;
     TofCallback onTof;
     PcmCallback onPcm;
+    ConnectionCallback onConnection;
 
     void run()
     {
@@ -118,6 +132,7 @@ struct WebSocketHost::Impl {
             server.run();
         } catch (...) {
             std::lock_guard<std::mutex> lock(mutex);
+            startError = std::current_exception();
             ready = true;
             connected = false;
             cv.notify_all();
@@ -186,6 +201,12 @@ void WebSocketHost::set_pcm_callback(PcmCallback callback)
     impl_->onPcm = std::move(callback);
 }
 
+void WebSocketHost::set_connection_callback(ConnectionCallback callback)
+{
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    impl_->onConnection = std::move(callback);
+}
+
 void WebSocketHost::start(double waitReadyS)
 {
     if (impl_->thread.joinable()) {
@@ -194,6 +215,8 @@ void WebSocketHost::start(double waitReadyS)
     {
         std::lock_guard<std::mutex> lock(impl_->mutex);
         impl_->ready = false;
+        impl_->stopping = false;
+        impl_->startError = nullptr;
     }
     impl_->thread = std::thread([this]() {
         impl_->run();
@@ -204,11 +227,18 @@ void WebSocketHost::start(double waitReadyS)
         })) {
         throw TimeoutError("WebSocket host did not become ready");
     }
+    if (impl_->startError) {
+        std::rethrow_exception(impl_->startError);
+    }
 }
 
 void WebSocketHost::stop()
 {
     try {
+        {
+            std::lock_guard<std::mutex> lock(impl_->mutex);
+            impl_->stopping = true;
+        }
         impl_->server.stop_listening();
         {
             std::lock_guard<std::mutex> lock(impl_->mutex);
@@ -217,6 +247,7 @@ void WebSocketHost::stop()
                 impl_->server.close(*impl_->active, websocketpp::close::status::normal, "", ec);
             }
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
         impl_->server.stop();
     } catch (...) {
     }

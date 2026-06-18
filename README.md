@@ -58,8 +58,15 @@ Without Visual Studio/MSVC, pure protocol tests can be built with MinGW by disab
 .\build\Release\aidog_ble_timed_move.exe --duration 1 --pause 1 --yes
 .\build\Release\aidog_safe_pose_adjust.exe --yes
 .\build\Release\aidog_custom_action.exe --yes
-.\build\Release\aidog_ws_basic_actions.exe
-.\build\Release\aidog_ws_imu_read.exe
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.23
+.\build\Release\aidog_ws_connection_test.exe
+.\build\Release\aidog_ws_basic_actions.exe --action sit_down --yes
+.\build\Release\aidog_ws_choreography.exe --yes
+.\build\Release\aidog_ws_ears_expressions_audio.exe --volume 2
+.\build\Release\aidog_ws_directional_move.exe --direction forward --duration 1 --yes
+.\build\Release\aidog_ws_timed_move.exe --duration 1 --pause 1 --yes
+.\build\Release\aidog_ws_imu_lan_read.exe --hz 20 --seconds 20
+.\build\Release\aidog_ws_tof_lan_read.exe --hz 20 --seconds 20
 ```
 
 BLE examples accept `--address <BluetoothAddress>` to skip scanning and
@@ -72,7 +79,11 @@ Robot adjustment examples are high-risk and change body or foot targets. Keep
 hands near the robot, use an open floor, and run them only after basic BLE
 actions and movement have been verified.
 
-WebSocket examples require firmware with `DEV_PC_AUDIO_WS_ENABLE=1` and `DEV_PC_AUDIO_WS_URL` pointing to the PC.
+WebSocket examples require the robot Dev PC WebSocket IP to point to the PC.
+Use `aidog_set_dev_pc_ws_ip_ble.exe` first when the PC IP changes.
+`aidog_ws_connection_test.exe` keeps the connection open by default; press
+Ctrl+C after the connection test, or pass `--no-keep-alive` for a one-shot
+connection check.
 
 ## Tools
 

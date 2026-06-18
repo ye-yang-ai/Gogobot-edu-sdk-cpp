@@ -24,3 +24,14 @@ TEST_CASE("notify parser ignores non-json text")
     CHECK_FALSE(parsed.imu.has_value());
     CHECK_FALSE(parsed.tof.has_value());
 }
+
+TEST_CASE("notify parser accepts integer-like status values")
+{
+    auto fromFloat = parse_notify_json_text(R"({"interaction_task_status":0.0})");
+    REQUIRE(fromFloat.interactionTaskStatus.has_value());
+    CHECK(*fromFloat.interactionTaskStatus == 0);
+
+    auto fromString = parse_notify_json_text(R"({"interaction_task_status":"1"})");
+    REQUIRE(fromString.interactionTaskStatus.has_value());
+    CHECK(*fromString.interactionTaskStatus == 1);
+}

@@ -21,6 +21,8 @@ void WebSocketHost::set_tof_callback(TofCallback) {}
 
 void WebSocketHost::set_pcm_callback(PcmCallback) {}
 
+void WebSocketHost::set_connection_callback(ConnectionCallback) {}
+
 void WebSocketHost::start(double)
 {
     throw UnsupportedError("WebSocket host is disabled");

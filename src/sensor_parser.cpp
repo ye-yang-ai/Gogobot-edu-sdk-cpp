@@ -30,6 +30,30 @@ std::optional<double> _number_value(const nlohmann::json& obj, const char* key)
     return it->get<double>();
 }
 
+std::optional<int> _int_value(const nlohmann::json& value)
+{
+    if (value.is_number_integer()) {
+        return value.get<int>();
+    }
+    if (value.is_number_float()) {
+        auto number = value.get<double>();
+        if (std::abs(number - std::round(number)) < 1e-9) {
+            return static_cast<int>(number);
+        }
+    }
+    if (value.is_string()) {
+        try {
+            std::size_t consumed = 0;
+            auto parsed = std::stoi(value.get<std::string>(), &consumed);
+            if (consumed == value.get<std::string>().size()) {
+                return parsed;
+            }
+        } catch (...) {
+        }
+    }
+    return std::nullopt;
+}
+
 } // namespace
 
 ImuData normalize_imu_payload(const nlohmann::json& imu)
@@ -95,8 +119,8 @@ ParsedNotify parse_notify_json_text(std::string_view text)
         }
 
         auto status = obj.find("interaction_task_status");
-        if (status != obj.end() && status->is_number_integer()) {
-            out.interactionTaskStatus = status->get<int>();
+        if (status != obj.end()) {
+            out.interactionTaskStatus = _int_value(*status);
         }
 
         auto imu = obj.find("imu");

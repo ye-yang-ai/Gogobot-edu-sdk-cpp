@@ -262,6 +262,12 @@ void AiDog::set_volume(int volume, std::optional<Tone> verifyTone, double verify
     }
 }
 
+void AiDog::set_dev_pc_ws_ip(const std::string& ip)
+{
+    nlohmann::json payload{{"cmd", 20}, {"dev_pc_ip", ip}};
+    ble_->send_config(payload);
+}
+
 void AiDog::request_imu_stream(bool enable, int hz, const std::string& transport)
 {
     std::vector<std::uint8_t> data;
@@ -406,6 +412,19 @@ void AiDog::remove_tof_listener(int id)
     std::erase_if(tofCallbacks_, [id](const auto& item) {
         return item.first == id;
     });
+}
+
+bool AiDog::wait_interaction_ready(double timeoutS)
+{
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(static_cast<int>(timeoutS * 1000.0));
+    std::unique_lock<std::mutex> lock(stateMutex_);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (interactionStatusNotifySeq_ > 0 && lastInteractionTaskStatus_ == 0) {
+            return true;
+        }
+        stateCv_.wait_for(lock, std::chrono::milliseconds(200));
+    }
+    return interactionStatusNotifySeq_ > 0 && lastInteractionTaskStatus_ == 0;
 }
 
 void AiDog::feed_sensor_stream_json(std::string_view text)
