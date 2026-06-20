@@ -216,7 +216,6 @@ const std::vector<EnumButtonDef<aidog::EarAction>>& ear_defs()
         {L"EAR_STAND_LEFT_AND_RIGHT", aidog::EarAction::EarStandLeftAndRight},
         {L"EAR_FOR_WINK", aidog::EarAction::EarForWink},
         {L"EAR_FOR_VIDEO", aidog::EarAction::EarForVideo},
-        {L"EAR_PERCENTAGE_BASIC", aidog::EarAction::EarPercentageBasic},
         {L"EAR_FLICK_EXCITED", aidog::EarAction::EarFlickExcited},
         {L"EAR_FLICK_LEFT_QUICK", aidog::EarAction::EarFlickLeftQuick},
         {L"EAR_FLICK_RIGHT_QUICK", aidog::EarAction::EarFlickRightQuick},

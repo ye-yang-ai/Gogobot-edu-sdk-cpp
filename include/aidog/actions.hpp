@@ -95,7 +95,6 @@ enum class EarAction : std::uint8_t {
     EarStandLeftAndRight = 11,
     EarForWink = 12,
     EarForVideo = 13,
-    EarPercentageBasic = 14,
     SpecialDetectionToggleBasic = 15,
     EarFlickExcited = 16,
     EarFlickLeftQuick = 17,
