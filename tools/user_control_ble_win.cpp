@@ -1,3 +1,16 @@
+/*
+Purpose:
+    AI-Dog Windows BLE user control GUI.
+Build:
+    cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
+    "C:\Program Files\CMake\bin\cmake.exe" --build build --config Release --target aidog_user_control_ble
+Run:
+    cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
+    .\build\Release\aidog_user_control_ble.exe
+Device:
+    Current BLE address: 12:0A:AB:16:3A:04
+*/
+
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -37,8 +50,18 @@
 namespace {
 
 constexpr wchar_t kWindowClass[] = L"AiDogBleControlWindow";
+#ifdef AIDOG_USER_CONTROL_WS
+constexpr wchar_t kWindowTitle[] = L"AI-Dog WS User Control";
+constexpr const char* kControlTransport = "ws";
+#else
+constexpr wchar_t kWindowTitle[] = L"AI-Dog BLE User Control";
+constexpr const char* kControlTransport = "ble";
+#endif
 constexpr UINT WM_APP_TASK_DONE = WM_APP + 1;
 constexpr UINT WM_APP_SENSOR = WM_APP + 2;
+#ifdef AIDOG_USER_CONTROL_WS
+constexpr UINT WM_APP_WS_STATE = WM_APP + 3;
+#endif
 constexpr UINT_PTR kRefreshTimer = 1;
 constexpr UINT_PTR kPlotTimer = 2;
 constexpr int kMaxLogLines = 300;
@@ -193,7 +216,6 @@ const std::vector<EnumButtonDef<aidog::EarAction>>& ear_defs()
         {L"EAR_STAND_LEFT_AND_RIGHT", aidog::EarAction::EarStandLeftAndRight},
         {L"EAR_FOR_WINK", aidog::EarAction::EarForWink},
         {L"EAR_FOR_VIDEO", aidog::EarAction::EarForVideo},
-        {L"EAR_PERCENTAGE_BASIC", aidog::EarAction::EarPercentageBasic},
         {L"EAR_FLICK_EXCITED", aidog::EarAction::EarFlickExcited},
         {L"EAR_FLICK_LEFT_QUICK", aidog::EarAction::EarFlickLeftQuick},
         {L"EAR_FLICK_RIGHT_QUICK", aidog::EarAction::EarFlickRightQuick},
@@ -458,7 +480,7 @@ public:
         wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
         RegisterClassW(&wc);
 
-        hwnd_ = CreateWindowExW(0, kWindowClass, L"AI-Dog BLE User Control", WS_OVERLAPPEDWINDOW,
+        hwnd_ = CreateWindowExW(0, kWindowClass, kWindowTitle, WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, 1180, 780, nullptr, nullptr, instance_, this);
         if (!hwnd_) {
             return 1;
@@ -541,6 +563,13 @@ private:
         case WM_APP_SENSOR:
             refresh_sensor_text();
             return 0;
+#ifdef AIDOG_USER_CONTROL_WS
+        case WM_APP_WS_STATE:
+            connected_.store(wparam != 0);
+            SetWindowTextW(statusLabel_, connected_.load() ? L"WS Status: connected" : L"WS Status: waiting");
+            append_log(connected_.load() ? L"Robot connected" : L"Robot disconnected");
+            return 0;
+#endif
         case WM_CLOSE:
             on_close();
             DestroyWindow(hwnd_);
@@ -651,6 +680,16 @@ private:
 
     void create_top_bar()
     {
+#ifdef AIDOG_USER_CONTROL_WS
+        prefixEdit_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"0.0.0.0", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL,
+            0, 0, 120, 24, hwnd_, reinterpret_cast<HMENU>(IdPrefix), instance_, nullptr);
+        deviceCombo_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"8766", WS_CHILD | WS_VISIBLE | ES_NUMBER,
+            0, 0, 80, 24, hwnd_, reinterpret_cast<HMENU>(IdDeviceCombo), instance_, nullptr);
+        scanButton_ = make_button(hwnd_, L"Start WS Host", IdScan);
+        connectButton_ = make_button(hwnd_, L"Wait Robot", IdConnect);
+        disconnectButton_ = make_button(hwnd_, L"Stop WS Host", IdDisconnect);
+        statusLabel_ = make_label(hwnd_, L"WS Status: stopped");
+#else
         prefixEdit_ = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Gogobot", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL,
             0, 0, 120, 24, hwnd_, reinterpret_cast<HMENU>(IdPrefix), instance_, nullptr);
         scanButton_ = make_button(hwnd_, L"Scan", IdScan);
@@ -659,6 +698,7 @@ private:
         connectButton_ = make_button(hwnd_, L"Connect", IdConnect);
         disconnectButton_ = make_button(hwnd_, L"Disconnect", IdDisconnect);
         statusLabel_ = make_label(hwnd_, L"Status: disconnected");
+#endif
     }
 
     void create_tabs()
@@ -788,12 +828,21 @@ private:
         const int topH = 38;
         const int logH = 140;
 
+#ifdef AIDOG_USER_CONTROL_WS
+        MoveWindow(prefixEdit_, pad, pad, 140, 24, TRUE);
+        MoveWindow(deviceCombo_, 156, pad, 70, 24, TRUE);
+        MoveWindow(scanButton_, 234, pad, 120, 26, TRUE);
+        MoveWindow(connectButton_, 362, pad, 92, 26, TRUE);
+        MoveWindow(disconnectButton_, 462, pad, 120, 26, TRUE);
+        MoveWindow(statusLabel_, 592, pad + 4, std::max(100, width - 600), 24, TRUE);
+#else
         MoveWindow(prefixEdit_, pad, pad, 140, 24, TRUE);
         MoveWindow(scanButton_, 156, pad, 70, 26, TRUE);
         MoveWindow(deviceCombo_, 234, pad, 360, 300, TRUE);
         MoveWindow(connectButton_, 602, pad, 76, 26, TRUE);
         MoveWindow(disconnectButton_, 686, pad, 90, 26, TRUE);
         MoveWindow(statusLabel_, 786, pad + 4, std::max(100, width - 794), 24, TRUE);
+#endif
 
         MoveWindow(tabs_, pad, topH, width - pad * 2, height - topH - logH - pad * 2, TRUE);
         RECT tabRect{};
@@ -912,16 +961,16 @@ private:
         } else if (id == 3005 || id == 3006) {
             handle_movement(id);
         } else if (auto it = actionMap_.find(id); it != actionMap_.end()) {
-            post_command(L"Action", [this, action = it->second]() { dog_.send_interaction(action); });
+            post_command(L"Action", [this, action = it->second]() { dog_.send_interaction(action, std::nullopt, kControlTransport); });
         } else if (auto it = earMap_.find(id); it != earMap_.end()) {
-            post_command(L"Ear action", [this, action = it->second]() { dog_.send_ear(action); });
+            post_command(L"Ear action", [this, action = it->second]() { dog_.send_ear(action, kControlTransport); });
         } else if (auto it = expressionMap_.find(id); it != expressionMap_.end()) {
-            post_command(L"Expression", [this, expression = it->second]() { dog_.send_expression(expression); });
+            post_command(L"Expression", [this, expression = it->second]() { dog_.send_expression(expression, kControlTransport); });
         } else if (auto it = toneMap_.find(id); it != toneMap_.end()) {
-            post_command(L"Audio", [this, tone = it->second]() { dog_.send_audio(tone); });
+            post_command(L"Audio", [this, tone = it->second]() { dog_.send_audio(tone, kControlTransport); });
         } else if (id >= 7100 && id <= 7104) {
             const int volume = id - 7100;
-            post_command(L"Volume", [this, volume]() { dog_.set_volume(volume); });
+            post_command(L"Volume", [this, volume]() { dog_.set_volume(volume, std::nullopt, 0.2, kControlTransport); });
         }
     }
 
@@ -1204,6 +1253,9 @@ private:
 
     void scan_devices()
     {
+#ifdef AIDOG_USER_CONTROL_WS
+        start_ws_host();
+#else
         const auto prefix = clamp_edit_text(prefixEdit_);
         append_log(L"Start scan");
         worker_->post(L"Scan", [this, prefix]() {
@@ -1214,10 +1266,14 @@ private:
                 devices_.push_back({item.name, item.address});
             }
         });
+#endif
     }
 
     void connect_device()
     {
+#ifdef AIDOG_USER_CONTROL_WS
+        wait_ws_robot();
+#else
         const int index = ComboBox_GetCurSel(deviceCombo_);
         DeviceEntry device;
         {
@@ -1234,15 +1290,24 @@ private:
             dog_.connect(options);
             connected_.store(true);
         });
+#endif
     }
 
     void disconnect_device()
     {
+#ifdef AIDOG_USER_CONTROL_WS
+        worker_->post(L"Stop WS Host", [this]() {
+            activeMovement_.reset();
+            cleanup_robot();
+            connected_.store(false);
+        });
+#else
         worker_->post(L"Disconnect", [this]() {
             activeMovement_.reset();
             cleanup_robot();
             connected_.store(false);
         });
+#endif
         reset_joystick(false);
     }
 
@@ -1271,7 +1336,7 @@ private:
             return;
         }
         activeMovement_ = movement;
-        post_command(L"Movement", [this, movement]() { dog_.start_movement(movement); });
+        post_command(L"Movement", [this, movement]() { dog_.start_movement(movement, kControlTransport); });
     }
 
     void stop_active_movement()
@@ -1280,14 +1345,14 @@ private:
             return;
         }
         activeMovement_.reset();
-        post_command(L"Stop movement", [this]() { dog_.stop_movement(); });
+        post_command(L"Stop movement", [this]() { dog_.stop_movement(kControlTransport); });
     }
 
     void send_ear_percentage()
     {
         const int value = static_cast<int>(SendMessageW(earSlider_, TBM_GETPOS, 0, 0));
         SetWindowTextW(earValueLabel_, (std::to_wstring(value) + L"%").c_str());
-        post_command(L"Ear percent", [this, value]() { dog_.send_ear_percentage(value); });
+        post_command(L"Ear percent", [this, value]() { dog_.send_ear_percentage(value, kControlTransport); });
     }
 
     void queue_ear_percentage(int value)
@@ -1324,21 +1389,21 @@ private:
     {
         lastEarPercent_ = value;
         lastEarPercentTick_ = GetTickCount();
-        post_command(L"Ear percent", [this, value]() { dog_.send_ear_percentage(value); });
+        post_command(L"Ear percent", [this, value]() { dog_.send_ear_percentage(value, kControlTransport); });
     }
 
     void toggle_imu()
     {
         const bool enabled = Button_GetCheck(imuCheck_) == BST_CHECKED;
         const int hz = get_hz();
-        post_command(enabled ? L"Enable IMU" : L"Disable IMU", [this, enabled, hz]() { dog_.request_imu_stream(enabled, hz); });
+        post_command(enabled ? L"Enable IMU" : L"Disable IMU", [this, enabled, hz]() { dog_.request_imu_stream(enabled, hz, kControlTransport); });
     }
 
     void toggle_tof()
     {
         const bool enabled = Button_GetCheck(tofCheck_) == BST_CHECKED;
         const int hz = get_hz();
-        post_command(enabled ? L"Enable TOF" : L"Disable TOF", [this, enabled, hz]() { dog_.request_tof_stream(enabled, hz); });
+        post_command(enabled ? L"Enable TOF" : L"Disable TOF", [this, enabled, hz]() { dog_.request_tof_stream(enabled, hz, kControlTransport); });
     }
 
     void apply_sensor_hz()
@@ -1352,10 +1417,10 @@ private:
         }
         post_command(L"Apply sensor Hz", [this, hz, imuOn, tofOn]() {
             if (imuOn) {
-                dog_.request_imu_stream(true, hz);
+                dog_.request_imu_stream(true, hz, kControlTransport);
             }
             if (tofOn) {
-                dog_.request_tof_stream(true, hz);
+                dog_.request_tof_stream(true, hz, kControlTransport);
             }
         });
     }
@@ -1370,6 +1435,81 @@ private:
         worker_->post(std::move(label), std::move(fn));
     }
 
+#ifdef AIDOG_USER_CONTROL_WS
+    void start_ws_host()
+    {
+        if (wsHost_) {
+            append_log(L"WS host already started");
+            return;
+        }
+        auto bind = to_utf8(clamp_edit_text(prefixEdit_));
+        int port = 8766;
+        try {
+            port = std::stoi(clamp_edit_text(deviceCombo_));
+        } catch (...) {
+            port = 8766;
+        }
+        append_log(L"Start WS Host: queued");
+        worker_->post(L"Start WS Host", [this, bind, port]() {
+            wsHost_ = std::make_unique<aidog::WebSocketHost>(bind, port, &dog_);
+            wsHost_->set_connection_callback([this](bool connected) {
+                PostMessageW(hwnd_, WM_APP_WS_STATE, connected ? TRUE : FALSE, 0);
+            });
+            wsHost_->set_imu_callback([this](const aidog::ImuData& imu) {
+                {
+                    std::lock_guard<std::mutex> lock(sensorMutex_);
+                    sensors_.imu = imu;
+                    const DWORD tick = GetTickCount();
+                    if (imu.yawDeg.has_value()) {
+                        add_plot_point(0, *imu.yawDeg, tick);
+                    }
+                    if (imu.pitchDeg.has_value()) {
+                        add_plot_point(1, *imu.pitchDeg, tick);
+                    }
+                    if (imu.rollDeg.has_value()) {
+                        add_plot_point(2, *imu.rollDeg, tick);
+                    }
+                }
+                PostMessageW(hwnd_, WM_APP_SENSOR, 0, 0);
+            });
+            wsHost_->set_tof_callback([this](const aidog::TofData& tof) {
+                {
+                    std::lock_guard<std::mutex> lock(sensorMutex_);
+                    sensors_.tof = tof;
+                    const DWORD tick = GetTickCount();
+                    auto front = json_number(tof.raw, {"front_mm", "front", "tof_front", "distance_mm"});
+                    auto oblique = json_number(tof.raw, {"oblique_mm", "oblique", "tof_oblique", "side_mm"});
+                    if (front.has_value()) {
+                        add_plot_point(3, *front, tick);
+                    }
+                    if (oblique.has_value()) {
+                        add_plot_point(4, *oblique, tick);
+                    }
+                }
+                PostMessageW(hwnd_, WM_APP_SENSOR, 0, 0);
+            });
+            wsHost_->start();
+            connected_.store(false);
+        });
+        SetWindowTextW(statusLabel_, L"WS Status: waiting");
+    }
+
+    void wait_ws_robot()
+    {
+        if (!wsHost_) {
+            append_log(L"Start WS Host first");
+            return;
+        }
+        append_log(L"Wait Robot: queued");
+        worker_->post(L"Wait Robot", [this]() {
+            if (!wsHost_->wait_robot_connected(120.0)) {
+                throw std::runtime_error("timeout waiting for robot");
+            }
+            connected_.store(true);
+        });
+    }
+#endif
+
     void on_task_done(TaskResult* result)
     {
         if (!result) {
@@ -1378,11 +1518,18 @@ private:
         std::unique_ptr<TaskResult> holder(result);
         append_log(result->label + L": " + result->message);
         refresh_devices_combo();
+#ifdef AIDOG_USER_CONTROL_WS
+        SetWindowTextW(statusLabel_, connected_.load() ? L"WS Status: connected" : (wsHost_ ? L"WS Status: waiting" : L"WS Status: stopped"));
+#else
         SetWindowTextW(statusLabel_, connected_.load() ? L"Status: connected" : L"Status: disconnected");
+#endif
     }
 
     void refresh_devices_combo()
     {
+#ifdef AIDOG_USER_CONTROL_WS
+        return;
+#else
         ComboBox_ResetContent(deviceCombo_);
         std::lock_guard<std::mutex> lock(deviceMutex_);
         for (const auto& device : devices_) {
@@ -1392,6 +1539,7 @@ private:
         if (!devices_.empty()) {
             ComboBox_SetCurSel(deviceCombo_, 0);
         }
+#endif
     }
 
     void refresh_sensor_text()
@@ -1450,6 +1598,25 @@ private:
 
     void cleanup_robot()
     {
+#ifdef AIDOG_USER_CONTROL_WS
+        try {
+            dog_.request_imu_stream(false, 20, kControlTransport);
+        } catch (...) {
+        }
+        try {
+            dog_.request_tof_stream(false, 20, kControlTransport);
+        } catch (...) {
+        }
+        try {
+            dog_.stop_movement(kControlTransport);
+        } catch (...) {
+        }
+        activeMovement_.reset();
+        if (wsHost_) {
+            wsHost_->stop();
+            wsHost_.reset();
+        }
+#else
         try {
             dog_.request_imu_stream(false);
         } catch (...) {
@@ -1467,6 +1634,7 @@ private:
             dog_.disconnect();
         } catch (...) {
         }
+#endif
     }
 
     void on_close()
@@ -1527,6 +1695,9 @@ private:
     std::unordered_map<int, aidog::Tone> toneMap_;
 
     aidog::AiDog dog_;
+#ifdef AIDOG_USER_CONTROL_WS
+    std::unique_ptr<aidog::WebSocketHost> wsHost_;
+#endif
     std::unique_ptr<Worker> worker_;
     std::atomic_bool connected_{false};
     std::mutex deviceMutex_;

@@ -40,6 +40,8 @@ public:
     bool is_robot_connected() const;
 
     void send_text(const std::string& text);
+    void send_binary(std::span<const std::uint8_t> data);
+    void send_pcm(std::span<const std::uint8_t> data);
     void send_control_raw(std::uint8_t mode, std::span<const std::uint8_t> data, const std::string& commandId = {});
     void send_control(std::uint8_t mode, std::span<const std::uint8_t> data) override;
     void send_control_json(const nlohmann::json& payload) override;

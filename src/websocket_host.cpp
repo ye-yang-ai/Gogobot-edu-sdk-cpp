@@ -288,6 +288,24 @@ void WebSocketHost::send_text(const std::string& text)
     }
 }
 
+void WebSocketHost::send_binary(std::span<const std::uint8_t> data)
+{
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    if (!impl_->active.has_value()) {
+        throw ConnectionError("no active robot WebSocket connection");
+    }
+    websocketpp::lib::error_code ec;
+    impl_->server.send(*impl_->active, data.data(), data.size(), websocketpp::frame::opcode::binary, ec);
+    if (ec) {
+        throw ConnectionError("WebSocket send failed: " + ec.message());
+    }
+}
+
+void WebSocketHost::send_pcm(std::span<const std::uint8_t> data)
+{
+    send_binary(data);
+}
+
 void WebSocketHost::send_control_raw(std::uint8_t mode, std::span<const std::uint8_t> data, const std::string& commandId)
 {
     send_control_json(make_control_raw_json(mode, data, commandId));
