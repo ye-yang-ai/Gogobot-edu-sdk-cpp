@@ -27,6 +27,23 @@ commands, expected result, and exit behavior.
 10. `06_robot_adjust/safe_pose_adjust.cpp`
 11. `06_robot_adjust/custom_action.cpp`
 
+## Recommended WebSocket Order
+
+1. `01_connection/websocket/ws_connection_test.cpp`
+2. `02_actions/websocket/ws_basic_actions.cpp`
+3. `04_sensors/websocket/ws_imu_lan_read.cpp`
+4. `04_sensors/websocket/ws_tof_lan_read.cpp`
+5. `02_actions/websocket/ws_ears_expressions_audio.cpp`
+6. `03_movement/websocket/ws_directional_move.cpp`
+7. `03_movement/websocket/ws_timed_move.cpp`
+8. `02_actions/websocket/ws_choreography.cpp`
+
+The C++ WebSocket layout now matches the Python SDK's core connection,
+actions, movement, and sensor examples. The Python-only
+`05_audio/bidirectional_pcm_ws_host.py` remains a future audio streaming item.
+Raw IMU accel/gyro printing is also still Python-only because the current C++
+`ImuData` model exposes normalized yaw, pitch, and roll.
+
 ## Directory Structure
 
 ```text
@@ -79,7 +96,7 @@ examples/
 | `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20` |
 | `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 20` |
 | `01_connection/websocket/ws_connection_test.cpp` | `aidog_ws_connection_test` | Wait for a robot WebSocket connection | Low | `.\build\Release\aidog_ws_connection_test.exe` |
-| `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe --action sit_down --yes` |
+| `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe --action sit_down --settle 0.6 --yes` |
 | `02_actions/websocket/ws_choreography.cpp` | `aidog_ws_choreography` | Run a combined WebSocket choreography | High | `.\build\Release\aidog_ws_choreography.exe --yes` |
 | `02_actions/websocket/ws_ears_expressions_audio.cpp` | `aidog_ws_ears_expressions_audio` | Control ears, expression, audio, and volume over WebSocket | Low/Medium | `.\build\Release\aidog_ws_ears_expressions_audio.exe --volume 2` |
 | `03_movement/websocket/ws_directional_move.cpp` | `aidog_ws_directional_move` | Move in one selected direction over WebSocket | High | `.\build\Release\aidog_ws_directional_move.exe --direction forward --duration 1 --yes` |
@@ -94,6 +111,8 @@ examples/
 - `--prefix`, `--name-prefix`: BLE advertisement prefix, default `Gogobot`.
 - `--address`: BLE MAC address or Windows BLE address.
 - `--timeout`: operation timeout for supported action examples.
+- `--connect-timeout`: WebSocket robot connection wait timeout.
+- `--settle`: WebSocket action delay after interaction status becomes ready.
 - `--hz`: requested sensor stream rate.
 - `--seconds`: sensor read duration.
 - `--action`: high-level action name.

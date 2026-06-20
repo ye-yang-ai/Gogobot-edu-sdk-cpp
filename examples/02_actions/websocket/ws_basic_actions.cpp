@@ -6,6 +6,7 @@ Risk level:
 Run:
     .\build\Release\aidog_ws_basic_actions.exe --action sit_down --yes
     .\build\Release\aidog_ws_basic_actions.exe --bind 0.0.0.0 --port 8766 --action shake_hand --count 2 --yes
+    .\build\Release\aidog_ws_basic_actions.exe --action turn_right_angle --angle 90 --settle 0.6 --yes
 Expected result:
     The selected action runs and prints action_done=true when completed.
 Exit:
@@ -32,6 +33,7 @@ struct Options {
     double timeoutS = 20.0;
     double connectTimeoutS = 60.0;
     double readyTimeoutS = 5.0;
+    double settleS = 0.6;
     bool yes = false;
 };
 
@@ -58,6 +60,8 @@ Options _parse_options(int argc, char** argv)
             options.connectTimeoutS = std::stod(argv[++i]);
         } else if (arg == "--ready-timeout" && i + 1 < argc) {
             options.readyTimeoutS = std::stod(argv[++i]);
+        } else if (arg == "--settle" && i + 1 < argc) {
+            options.settleS = std::stod(argv[++i]);
         } else if (arg == "--yes") {
             options.yes = true;
         }
@@ -90,6 +94,9 @@ int main(int argc, char** argv)
             return 1;
         }
         std::cout << "interaction status ready\n";
+        if (options.settleS > 0.0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(options.settleS * 1000.0)));
+        }
 
         aidog::ActionOptions actionOptions;
         actionOptions.count = options.count;

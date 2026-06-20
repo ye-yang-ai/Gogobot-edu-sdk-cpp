@@ -45,6 +45,16 @@ void WebSocketHost::send_text(const std::string&)
     throw UnsupportedError("WebSocket host is disabled");
 }
 
+void WebSocketHost::send_binary(std::span<const std::uint8_t>)
+{
+    throw UnsupportedError("WebSocket host is disabled");
+}
+
+void WebSocketHost::send_pcm(std::span<const std::uint8_t>)
+{
+    throw UnsupportedError("WebSocket host is disabled");
+}
+
 void WebSocketHost::send_control_raw(std::uint8_t, std::span<const std::uint8_t>, const std::string&)
 {
     throw UnsupportedError("WebSocket host is disabled");
