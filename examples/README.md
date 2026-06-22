@@ -76,25 +76,25 @@ examples/
 | Path | Target | Purpose | Risk | Typical command |
 | --- | --- | --- | --- | --- |
 | `01_connection/bluetooth/ble_scan_and_connect.cpp` | `aidog_ble_scan_and_connect` | Scan and connect to a Gogobot BLE device | Low | `.\build\Release\aidog_ble_scan_and_connect.exe --prefix Gogobot` |
-| `01_connection/bluetooth/ble_connect_by_address.cpp` | `aidog_ble_connect_by_address` | Connect to a known BLE device | Low | `.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04` |
+| `01_connection/bluetooth/ble_connect_by_address.cpp` | `aidog_ble_connect_by_address` | Connect to a known BLE device | Low | `.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF` |
 | `01_connection/websocket/ws_connection_test.cpp` | `aidog_ws_connection_test` | Wait for a robot WebSocket connection | Low | `.\build\Release\aidog_ws_connection_test.exe --timeout 60 --no-keep-alive` |
-| `02_actions/bluetooth/ble_basic_actions.cpp` | `aidog_ble_basic_actions` | Run one high-level BLE action | Medium | `.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action sit_down --yes` |
-| `02_actions/bluetooth/ble_ears_expressions_audio.cpp` | `aidog_ble_ears_expressions_audio` | Control ears, expressions, audio, volume, and special detection over BLE | Low/Medium | `.\build\Release\aidog_ble_ears_expressions_audio.exe --address 12:0A:AB:16:3A:04 --yes` |
-| `02_actions/bluetooth/ble_choreography.cpp` | `aidog_ble_choreography` | Run a combined BLE choreography | Medium | `.\build\Release\aidog_ble_choreography.exe --address 12:0A:AB:16:3A:04 --yes` |
+| `02_actions/bluetooth/ble_basic_actions.cpp` | `aidog_ble_basic_actions` | Run one high-level BLE action | Medium | `.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes` |
+| `02_actions/bluetooth/ble_ears_expressions_audio.cpp` | `aidog_ble_ears_expressions_audio` | Control ears, expressions, audio, volume, and special detection over BLE | Low/Medium | `.\build\Release\aidog_ble_ears_expressions_audio.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `02_actions/bluetooth/ble_choreography.cpp` | `aidog_ble_choreography` | Run a combined BLE choreography | Medium | `.\build\Release\aidog_ble_choreography.exe --address AA:BB:CC:DD:EE:FF --yes` |
 | `02_actions/websocket/ws_basic_actions.cpp` | `aidog_ws_basic_actions` | Run one action through the WebSocket host | Medium | `.\build\Release\aidog_ws_basic_actions.exe --action sit_down --settle 0.6 --connect-timeout 120 --yes` |
 | `02_actions/websocket/ws_ears_expressions_audio.cpp` | `aidog_ws_ears_expressions_audio` | Control ears, expressions, audio, and volume over WebSocket | Low/Medium | `.\build\Release\aidog_ws_ears_expressions_audio.exe --volume 2 --connect-timeout 120` |
 | `02_actions/websocket/ws_choreography.cpp` | `aidog_ws_choreography` | Run a combined WebSocket choreography | High | `.\build\Release\aidog_ws_choreography.exe --connect-timeout 120 --yes` |
-| `03_movement/bluetooth/ble_directional_move.cpp` | `aidog_ble_directional_move` | Move in one selected direction over BLE | Medium | `.\build\Release\aidog_ble_directional_move.exe --address 12:0A:AB:16:3A:04 --direction forward --duration 1 --yes` |
-| `03_movement/bluetooth/ble_timed_move.cpp` | `aidog_ble_timed_move` | Run a timed BLE movement sequence | Medium | `.\build\Release\aidog_ble_timed_move.exe --address 12:0A:AB:16:3A:04 --duration 1 --pause 1 --yes` |
+| `03_movement/bluetooth/ble_directional_move.cpp` | `aidog_ble_directional_move` | Move in one selected direction over BLE | Medium | `.\build\Release\aidog_ble_directional_move.exe --address AA:BB:CC:DD:EE:FF --direction forward --duration 1 --yes` |
+| `03_movement/bluetooth/ble_timed_move.cpp` | `aidog_ble_timed_move` | Run a timed BLE movement sequence | Medium | `.\build\Release\aidog_ble_timed_move.exe --address AA:BB:CC:DD:EE:FF --duration 1 --pause 1 --yes` |
 | `03_movement/websocket/ws_directional_move.cpp` | `aidog_ws_directional_move` | Move in one selected direction over WebSocket | High | `.\build\Release\aidog_ws_directional_move.exe --direction forward --duration 1 --connect-timeout 120 --yes` |
 | `03_movement/websocket/ws_timed_move.cpp` | `aidog_ws_timed_move` | Run a timed WebSocket movement sequence | High | `.\build\Release\aidog_ws_timed_move.exe --duration 1 --pause 1 --connect-timeout 120 --yes` |
-| `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address 12:0A:AB:16:3A:04 --hz 20 --seconds 10` |
-| `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address 12:0A:AB:16:3A:04 --hz 20 --seconds 10` |
+| `04_sensors/bluetooth/ble_imu_read.cpp` | `aidog_ble_imu_read` | Read BLE IMU stream | Low | `.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10` |
+| `04_sensors/bluetooth/ble_tof_read.cpp` | `aidog_ble_tof_read` | Read BLE TOF stream | Low | `.\build\Release\aidog_ble_tof_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10` |
 | `04_sensors/websocket/ws_imu_lan_read.cpp` | `aidog_ws_imu_lan_read` | Read WebSocket IMU JSON stream | Low | `.\build\Release\aidog_ws_imu_lan_read.exe --hz 20 --seconds 10 --connect-timeout 120` |
 | `04_sensors/websocket/ws_tof_lan_read.cpp` | `aidog_ws_tof_lan_read` | Read WebSocket TOF JSON stream | Low | `.\build\Release\aidog_ws_tof_lan_read.exe --hz 20 --seconds 10 --connect-timeout 120` |
 | `05_audio/bidirectional_pcm_ws_host.cpp` | `aidog_ws_bidirectional_pcm_host` | Send PC microphone PCM to the robot and play robot PCM on the PC | Medium | `.\build\Release\aidog_ws_bidirectional_pcm_host.exe --connect-timeout 120 --input-device 0 --output-device 0` |
-| `06_robot_adjust/safe_pose_adjust.cpp` | `aidog_safe_pose_adjust` | Run low-amplitude body and foot adjustment | High | `.\build\Release\aidog_safe_pose_adjust.exe --address 12:0A:AB:16:3A:04 --yes` |
-| `06_robot_adjust/custom_action.cpp` | `aidog_custom_action` | Run a sniff-like custom robot-adjustment action | High | `.\build\Release\aidog_custom_action.exe --address 12:0A:AB:16:3A:04 --yes` |
+| `06_robot_adjust/safe_pose_adjust.cpp` | `aidog_safe_pose_adjust` | Run low-amplitude body and foot adjustment | High | `.\build\Release\aidog_safe_pose_adjust.exe --address AA:BB:CC:DD:EE:FF --yes` |
+| `06_robot_adjust/custom_action.cpp` | `aidog_custom_action` | Run a sniff-like custom robot-adjustment action | High | `.\build\Release\aidog_custom_action.exe --address AA:BB:CC:DD:EE:FF --yes` |
 
 ## Common Arguments
 
@@ -131,7 +131,7 @@ cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
 The robot connects back to the development PC in WebSocket mode. Configure the PC IP over BLE first:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 Then start one WS example or the WS GUI and wait for the robot to connect:

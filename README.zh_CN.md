@@ -52,7 +52,7 @@ int main() {
     aidog::AiDog dog;
 
     aidog::ConnectOptions options;
-    options.address = "12:0A:AB:16:3A:04";
+    options.address = "AA:BB:CC:DD:EE:FF";
     dog.connect(options);
 
     dog.send_interaction(aidog::Action::SitDown);
@@ -77,9 +77,9 @@ int main() {
 cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
 
 .\build\Release\aidog_ble_scan_and_connect.exe --prefix Gogobot
-.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action sit_down --yes
-.\build\Release\aidog_ble_imu_read.exe --address 12:0A:AB:16:3A:04 --hz 20 --seconds 10
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes
+.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10
 ```
 
 ## WebSocket 控制
@@ -88,7 +88,7 @@ WebSocket 模式下，机器狗主动连接开发电脑。第一次使用时，�
 
 ```powershell
 cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 然后运行 WS 示例：
@@ -135,16 +135,29 @@ WS 上位机：
 
 两个上位机的控制界面保持一致，WS 版只把连接方式替换为 Dev PC WebSocket 主机模式。
 
+## 文档
+
+- [快速开始](docs/quick_start.zh_CN.md)
+- [API 参考](docs/api_reference.md)
+- [BLE 连接说明](docs/connection_ble.md)
+- [Dev PC WebSocket](docs/dev_pc_websocket.md)
+- [固件兼容性](docs/firmware_compatibility.md)
+- [故障排查](docs/troubleshooting.md)
+- [示例索引](examples/README.md)
+
 ## 项目结构
 
 ```text
 aidog_sdk_cpp/
-  include/aidog/       Public C++ headers
-  src/                 SDK implementation
-  examples/            Example programs
-  tools/               Windows GUI tools
-  tests/               SDK tests
-  docs/                Design notes and assets
+├─ include/                  # Public C++ headers
+├─ src/                      # SDK implementation
+├─ examples/                 # Runnable C++ examples
+├─ tools/                    # Windows upper-computer tools
+├─ tests/                    # Protocol and parser tests
+├─ docs/                     # User, protocol, safety, and asset docs
+├─ CMakeLists.txt            # CMake build entry
+├─ README.md                 # English entry
+└─ README.zh_CN.md           # Chinese entry
 ```
 
 ## 许可协议

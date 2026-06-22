@@ -8,7 +8,7 @@ Run:
     cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
     .\build\Release\aidog_user_control_ble.exe
 Device:
-    Current BLE address: 12:0A:AB:16:3A:04
+    Current BLE address: AA:BB:CC:DD:EE:FF
 */
 
 #ifndef UNICODE

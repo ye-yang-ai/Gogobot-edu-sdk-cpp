@@ -63,7 +63,7 @@ int main()
     aidog::AiDog dog;
 
     aidog::ConnectOptions options;
-    options.address = "12:0A:AB:16:3A:04";
+    options.address = "AA:BB:CC:DD:EE:FF";
     dog.connect(options);
 
     dog.send_interaction(aidog::Action::SitDown);
@@ -84,7 +84,7 @@ int main()
 The robot connects to a Dev PC WebSocket host running on the computer. When the PC IP changes, write the new Dev-PC WebSocket IP through BLE first:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 Then run a WebSocket host example or the WebSocket control panel:
@@ -144,27 +144,33 @@ Windows WebSocket upper-computer control panel:
 Dev-PC WebSocket IP writer:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 ## Documentation
 
 - [Examples](examples/README.md)
+- [Quick Start](docs/quick_start.en.md)
+- [API Reference](docs/api_reference.md)
+- [BLE Connection Guide](docs/connection_ble.md)
+- [Dev PC WebSocket](docs/dev_pc_websocket.md)
+- [Firmware Compatibility](docs/firmware_compatibility.md)
+- [Troubleshooting](docs/troubleshooting.md)
 - [C++ SDK Design Notes](docs/2026-06-15-aidog-sdk-cpp-design.md)
 
 ## Project Layout
 
 ```text
 aidog_sdk_cpp/
-  include/                  # Public C++ headers
-  src/                      # SDK implementation
-  examples/                 # Runnable C++ examples
-  tools/                    # Windows upper-computer tools
-  tests/                    # Protocol and parser tests
-  docs/                     # Design notes and future user docs
-  CMakeLists.txt            # CMake build entry
-  README.md                 # English entry
-  README.zh_CN.md           # Chinese entry
+1├─ include/                  # Public C++ headers
+├─ src/                      # SDK implementation
+├─ examples/                 # Runnable C++ examples
+├─ tools/                    # Windows upper-computer tools
+├─ tests/                    # Protocol and parser tests
+├─ docs/                     # User, protocol, safety, and asset docs
+├─ CMakeLists.txt            # CMake build entry
+├─ README.md                 # English entry
+└─ README.zh_CN.md           # Chinese entry
 ```
 
 ## License

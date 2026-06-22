@@ -1,0 +1,38 @@
+# Firmware Compatibility
+
+SDK behavior depends on firmware support. Keep this file updated whenever firmware protocol or characteristic behavior changes.
+
+## Compatibility Matrix
+
+| Feature | Required Firmware Support | SDK Surface |
+| --- | --- | --- |
+| BLE command write | `ae03` write characteristic | `send_raw`, all control APIs |
+| BLE config write | `ae01` write characteristic, config JSON parser | `set_volume()` |
+| Device status notify | `ae02` notify / indicate | action completion state |
+| IMU / TOF sensor stream | `ae04` notify / indicate JSON | `request_imu_stream`, `request_tof_stream` |
+| Action definition read | `ae10` read characteristic | `get_action_list()` |
+| Dev PC WebSocket sensor mirror | Dev-PC WebSocket text JSON mirror | `WebSocketHost`, WS sensor examples |
+| Dev PC WebSocket control | text JSON `control_raw` dispatch to remote-control raw parser | `transport="ws"`, `aidog_user_control_ws` |
+| Dev PC WebSocket config | text JSON `config_json` dispatch to BLE-compatible config parser | `set_volume(..., "ws")` |
+| Bidirectional PCM audio | Dev-PC audio WebSocket binary frame path | `aidog_ws_bidirectional_pcm_host` |
+| Robot adjustment | `MODE_ROBOT_ADJUST = 0x0A` | `syn_pose_adjust`, `syn_foot_adjust`, `syn_joint_adjust` |
+
+## Firmware Notes
+
+- Some older firmware builds may not report `interaction_task_status`; `perform_action()` completion waiting is less reliable without it.
+- Some builds tie IMU/TOF reporting to notification routing; the SDK subscribes to both `ae02` and `ae04` by default.
+- `set_volume()` requires the firmware config parser to accept `{"cmd":1,"volume":0-4}` on `ae01`.
+- `ae10` action list reading is optional and may not exist on all firmware versions.
+- WebSocket sensor mirror and bidirectional audio require firmware support and LAN reachability.
+- WebSocket control requires the firmware to parse text JSON `{"cmd":"control_raw","packet":"..."}` and return `control_raw` ACK frames.
+- `aidog_user_control_ws.exe` uses WebSocket for movement, action, ear, expression, audio, special detection, sensor stream, and volume controls.
+
+## Recommended Release Practice
+
+For each SDK release, document:
+
+- Tested robot model.
+- Tested firmware version or commit.
+- Supported BLE characteristics.
+- Supported WebSocket features.
+- Known limitations.
