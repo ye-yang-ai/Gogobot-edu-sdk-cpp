@@ -162,7 +162,7 @@ Dev-PC WebSocket IP writer:
 
 ```text
 aidog_sdk_cpp/
-1├─ include/                  # Public C++ headers
+├─ include/                  # Public C++ headers
 ├─ src/                      # SDK implementation
 ├─ examples/                 # Runnable C++ examples
 ├─ tools/                    # Windows upper-computer tools
