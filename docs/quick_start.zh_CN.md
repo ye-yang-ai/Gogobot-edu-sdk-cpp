@@ -36,7 +36,7 @@ cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
 按已知蓝牙地址连接：
 
 ```powershell
-.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
 ```
 
 C++ 调用方式：
@@ -46,14 +46,14 @@ C++ 调用方式：
 
 aidog::AiDog dog;
 aidog::ConnectOptions options;
-options.address = "12:0A:AB:16:3A:04";
+options.address = "AA:BB:CC:DD:EE:FF";
 dog.connect(options);
 ```
 
 ## 4. 运行一个安全动作
 
 ```powershell
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action sit_down --yes
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes
 ```
 
 C++ 调用方式：
@@ -69,7 +69,7 @@ const bool ok = dog.perform_action(aidog::Action::SitDown, options);
 WebSocket 模式下机器狗会主动连接开发电脑。电脑 IP 变化时，先通过 BLE 写入 Dev PC WebSocket IP：
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 然后启动 PC 侧 WebSocket host 示例：

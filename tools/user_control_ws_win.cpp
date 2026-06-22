@@ -6,7 +6,7 @@ Build:
     "C:\Program Files\CMake\bin\cmake.exe" --build build --config Release --target aidog_user_control_ws
 Configure robot Dev-PC WebSocket IP over BLE:
     cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
-    .\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.108
+    .\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.108
 Run:
     cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
     .\build\Release\aidog_user_control_ws.exe

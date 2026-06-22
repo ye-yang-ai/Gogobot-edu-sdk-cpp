@@ -35,7 +35,7 @@ The Python SDK contains PC-side pygame mini games that use keyboard, BLE IMU, or
 BLE IMU:
 
 ```powershell
-.\build\Release\aidog_ble_imu_read.exe --address 12:0A:AB:16:3A:04 --hz 20 --seconds 10
+.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10
 ```
 
 WebSocket IMU:

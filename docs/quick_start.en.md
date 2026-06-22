@@ -36,7 +36,7 @@ Scan by name prefix:
 Connect by known address:
 
 ```powershell
-.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
 ```
 
 C++ usage:
@@ -46,14 +46,14 @@ C++ usage:
 
 aidog::AiDog dog;
 aidog::ConnectOptions options;
-options.address = "12:0A:AB:16:3A:04";
+options.address = "AA:BB:CC:DD:EE:FF";
 dog.connect(options);
 ```
 
 ## 4. Run a Safe Action
 
 ```powershell
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action sit_down --yes
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes
 ```
 
 C++ usage:
@@ -69,7 +69,7 @@ const bool ok = dog.perform_action(aidog::Action::SitDown, options);
 The robot connects back to the development PC. Configure the PC IP through BLE when the PC IP changes:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 Then start a PC WebSocket host example:

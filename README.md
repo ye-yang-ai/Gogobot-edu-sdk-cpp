@@ -63,7 +63,7 @@ int main()
     aidog::AiDog dog;
 
     aidog::ConnectOptions options;
-    options.address = "12:0A:AB:16:3A:04";
+    options.address = "AA:BB:CC:DD:EE:FF";
     dog.connect(options);
 
     dog.send_interaction(aidog::Action::SitDown);
@@ -84,7 +84,7 @@ int main()
 The robot connects to a Dev PC WebSocket host running on the computer. When the PC IP changes, write the new Dev-PC WebSocket IP through BLE first:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 Then run a WebSocket host example or the WebSocket control panel:
@@ -144,7 +144,7 @@ Windows WebSocket upper-computer control panel:
 Dev-PC WebSocket IP writer:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 ## Documentation

@@ -24,14 +24,14 @@ Returned records are `aidog::DeviceInfo` values with name and address fields.
 Direct address connection:
 
 ```powershell
-.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
 ```
 
 C++ usage:
 
 ```cpp
 aidog::ConnectOptions options;
-options.address = "12:0A:AB:16:3A:04";
+options.address = "AA:BB:CC:DD:EE:FF";
 dog.connect(options);
 ```
 

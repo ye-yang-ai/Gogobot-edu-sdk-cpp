@@ -52,7 +52,7 @@ int main() {
     aidog::AiDog dog;
 
     aidog::ConnectOptions options;
-    options.address = "12:0A:AB:16:3A:04";
+    options.address = "AA:BB:CC:DD:EE:FF";
     dog.connect(options);
 
     dog.send_interaction(aidog::Action::SitDown);
@@ -77,9 +77,9 @@ int main() {
 cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
 
 .\build\Release\aidog_ble_scan_and_connect.exe --prefix Gogobot
-.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action sit_down --yes
-.\build\Release\aidog_ble_imu_read.exe --address 12:0A:AB:16:3A:04 --hz 20 --seconds 10
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action sit_down --yes
+.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10
 ```
 
 ## WebSocket 控制
@@ -88,7 +88,7 @@ WebSocket 模式下，机器狗主动连接开发电脑。第一次使用时，�
 
 ```powershell
 cd C:\C_project_3.1\arbitrarion10\aidog_sdk_cpp
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 然后运行 WS 示例：

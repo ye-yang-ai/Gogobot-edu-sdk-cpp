@@ -78,6 +78,6 @@ dog.perform_action("stand_up");
 For command-line testing:
 
 ```powershell
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action shake_hand --count 2 --yes
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action right_angle_interaction --angle 90 --yes
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action shake_hand --count 2 --yes
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action right_angle_interaction --angle 90 --yes
 ```

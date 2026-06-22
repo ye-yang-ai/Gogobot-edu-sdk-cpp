@@ -18,7 +18,7 @@
 - Run a scan once before direct address connection so the WinRT BLE cache is warm.
 
 ```powershell
-.\build\Release\aidog_ble_connect_by_address.exe --address 12:0A:AB:16:3A:04
+.\build\Release\aidog_ble_connect_by_address.exe --address AA:BB:CC:DD:EE:FF
 ```
 
 ## Action Does Not Finish
@@ -27,7 +27,7 @@
 - Increase timeout for long actions:
 
 ```powershell
-.\build\Release\aidog_ble_basic_actions.exe --address 12:0A:AB:16:3A:04 --action shake_hand --timeout 30 --yes
+.\build\Release\aidog_ble_basic_actions.exe --address AA:BB:CC:DD:EE:FF --action shake_hand --timeout 30 --yes
 ```
 
 - For WebSocket actions, allow enough connection time:
@@ -43,7 +43,7 @@
 - Keep the process running for several seconds because some firmware builds start streams slowly.
 
 ```powershell
-.\build\Release\aidog_ble_imu_read.exe --address 12:0A:AB:16:3A:04 --hz 20 --seconds 10
+.\build\Release\aidog_ble_imu_read.exe --address AA:BB:CC:DD:EE:FF --hz 20 --seconds 10
 .\build\Release\aidog_ws_imu_lan_read.exe --hz 20 --seconds 10 --connect-timeout 120
 ```
 
@@ -53,7 +53,7 @@
 - Write the current PC IP to the robot through BLE:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 - Check that only one WebSocket host is running on port `8766`.

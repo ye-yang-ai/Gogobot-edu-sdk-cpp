@@ -7,7 +7,7 @@ Some firmware builds can connect to a PC-side WebSocket server for LAN control, 
 The current C++ workflow configures the robot's Dev-PC WebSocket IP through BLE:
 
 ```powershell
-.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address 12:0A:AB:16:3A:04 192.168.11.101
+.\build\Release\aidog_set_dev_pc_ws_ip_ble.exe --address AA:BB:CC:DD:EE:FF 192.168.11.101
 ```
 
 The PC and robot must be on the same LAN, and the port must match the host program. The default port is `8766`.
