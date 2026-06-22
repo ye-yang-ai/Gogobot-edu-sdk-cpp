@@ -149,12 +149,15 @@ WS 上位机：
 
 ```text
 aidog_sdk_cpp/
-  include/aidog/       Public C++ headers
-  src/                 SDK implementation
-  examples/            Example programs
-  tools/               Windows GUI tools
-  tests/               SDK tests
-  docs/                Design notes and assets
+├─ include/                  # Public C++ headers
+├─ src/                      # SDK implementation
+├─ examples/                 # Runnable C++ examples
+├─ tools/                    # Windows upper-computer tools
+├─ tests/                    # Protocol and parser tests
+├─ docs/                     # User, protocol, safety, and asset docs
+├─ CMakeLists.txt            # CMake build entry
+├─ README.md                 # English entry
+└─ README.zh_CN.md           # Chinese entry
 ```
 
 ## 许可协议

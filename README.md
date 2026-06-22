@@ -162,15 +162,15 @@ Dev-PC WebSocket IP writer:
 
 ```text
 aidog_sdk_cpp/
-  include/                  # Public C++ headers
-  src/                      # SDK implementation
-  examples/                 # Runnable C++ examples
-  tools/                    # Windows upper-computer tools
-  tests/                    # Protocol and parser tests
-  docs/                     # Design notes and future user docs
-  CMakeLists.txt            # CMake build entry
-  README.md                 # English entry
-  README.zh_CN.md           # Chinese entry
+1├─ include/                  # Public C++ headers
+├─ src/                      # SDK implementation
+├─ examples/                 # Runnable C++ examples
+├─ tools/                    # Windows upper-computer tools
+├─ tests/                    # Protocol and parser tests
+├─ docs/                     # User, protocol, safety, and asset docs
+├─ CMakeLists.txt            # CMake build entry
+├─ README.md                 # English entry
+└─ README.zh_CN.md           # Chinese entry
 ```
 
 ## License
