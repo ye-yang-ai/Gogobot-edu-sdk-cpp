@@ -135,6 +135,16 @@ WS 上位机：
 
 两个上位机的控制界面保持一致，WS 版只把连接方式替换为 Dev PC WebSocket 主机模式。
 
+## 文档
+
+- [快速开始](docs/quick_start.zh_CN.md)
+- [API 参考](docs/api_reference.md)
+- [BLE 连接说明](docs/connection_ble.md)
+- [Dev PC WebSocket](docs/dev_pc_websocket.md)
+- [固件兼容性](docs/firmware_compatibility.md)
+- [故障排查](docs/troubleshooting.md)
+- [示例索引](examples/README.md)
+
 ## 项目结构
 
 ```text

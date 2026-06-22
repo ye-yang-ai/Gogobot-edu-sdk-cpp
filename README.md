@@ -150,6 +150,12 @@ Dev-PC WebSocket IP writer:
 ## Documentation
 
 - [Examples](examples/README.md)
+- [Quick Start](docs/quick_start.en.md)
+- [API Reference](docs/api_reference.md)
+- [BLE Connection Guide](docs/connection_ble.md)
+- [Dev PC WebSocket](docs/dev_pc_websocket.md)
+- [Firmware Compatibility](docs/firmware_compatibility.md)
+- [Troubleshooting](docs/troubleshooting.md)
 - [C++ SDK Design Notes](docs/2026-06-15-aidog-sdk-cpp-design.md)
 
 ## Project Layout
